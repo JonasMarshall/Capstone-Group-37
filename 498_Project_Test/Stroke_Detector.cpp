@@ -1,5 +1,6 @@
 #include <Arduino_LSM9DS1.h>
 #include "Stroke_Detector.h"
+#include "GPS_Config.h"
 #include <SPI.h>
 #include <SD.h>
 
@@ -29,7 +30,10 @@ int back = 0;
 float StrokeData[72][2];
 
 float filteredpoints[72];
-float total_data_points[76];
+float acceleration_data_points[76];
+float distance_data_points[76];
+float mps_data_points[76];
+String split_data_points[76];
 float new_data[72];
 
 
@@ -66,7 +70,32 @@ while(true){
     if (samplerate == 10){
       totalAcceleration = (x+y+z);
   
-    current_Millis = millis(); 
+    current_Millis = millis();
+
+    // GPS calculations
+    if (Serial1.available()) {
+      String data = Serial1.readStringUntil('\n');
+      data.trim();
+
+      if (data.startsWith("$GPRMC") && parseGPSData(data)) {
+        // Calculate distance if we have previous valid coordinates
+        if (prevLat != 0.0 && prevLon != 0.0) {
+          double distance = haversine(prevLat, prevLon, lat, lon);
+          
+          // Apply thresholds
+          if (distance < MAX_DISTANCE_THRESHOLD && 
+              speed < MAX_SPEED_THRESHOLD &&
+              speed > MIN_SPEED_THRESHOLD) {
+            totalDistance += distance;
+          }
+        }
+      }
+    }
+
+    int integer_speed = round(speed);
+    int split_minutes = (500/integer_speed) % 60;
+    float split_seconds = (500/integer_speed) - split_minutes * 60;
+
     // second = current_Millis /1000;
     // Serial.print(second);
     // Serial.print(",");
@@ -75,7 +104,11 @@ while(true){
     // Serial.println(counter);
     samplerate = 0;
     timeArray[counter] = current_Millis;
-    total_data_points[counter] = totalAcceleration;
+    acceleration_data_points[counter] = totalAcceleration;
+    distance_data_points[counter] = distance;
+    mps_data_points[counter] = speed;
+    split_data_points[counter] = String(split_minutes) + ":" + String(split_seconds, 2);
+
     counter = counter+1;
     if (counter == 75){
       //Storing Acceleration data to CSV file and SD card
@@ -92,11 +125,13 @@ while(true){
         for (int i = 0; i<counter;i++){
             dataFile.print(timeArray[i]); // Timestamp in milliseconds
             dataFile.print(",");
-            dataFile.print(distance); // Distance in meters
+            dataFile.print(distance_data_points[i]); // Distance in meters
             dataFile.print(",");
-            dataFile.print(velocity); // Velocity in meters per second
+            dataFile.print(mps_data_points[i]); // Speed in meters per second
             dataFile.print(",");
-            dataFile.println(total_data_points[i]); // Acceleration in meters per second squared
+            dataFile.print(split_data_points[i]); // Speed in meters per second
+            dataFile.print(",");
+            dataFile.println(acceleration_data_points[i]); // Acceleration in meters per second squared
         }
         dataFile.close();
         Serial.println("data written to data.csv");

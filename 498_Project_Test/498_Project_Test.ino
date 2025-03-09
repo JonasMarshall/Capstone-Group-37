@@ -3,6 +3,8 @@
 #include "DEV_Config.h"
 #include "Debug.h"
 #include "ImageData.h"
+#include "Stroke_Detector.h"
+#include "GPS_Config.h"
 
 int screen = 0;
 int selection = 0;
@@ -41,7 +43,13 @@ void setup() {
   Serial.begin(9600);
   if(USE_IIC) {
     Serial.print("Only USE_SPI_4W, Please revise DEV_config.h !!!");
-    return 0;
+  }
+
+  // GPS Initialization
+  Serial1.begin(9600);
+  // Initialize speed history
+  for (int i = 0; i < SPEED_SAMPLES; i++) {
+    speedHistory[i] = 0.0;
   }
 
   Serial.print(F("OLED_Init()...\r\n"));
