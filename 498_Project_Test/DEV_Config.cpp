@@ -20,15 +20,16 @@ uint8_t System_Init(void)
   pinMode(OLED_DC, OUTPUT);
 
   //set Serial
-  Serial.begin(115200);
+  Serial.begin(9600);
 
 #if USE_SPI_4W
   Serial.println("USE_SPI");
   //set OLED SPI
-  SPI.setDataMode(SPI_MODE3);
-  SPI.setBitOrder(MSBFIRST);
-  SPI.setClockDivider(SPI_CLOCK_DIV2);
+  
   SPI.begin();
+    
+    // Set SPI settings correctly
+  SPI.beginTransaction(SPISettings(8000000, MSBFIRST, SPI_MODE3));
 
 #elif USE_IIC
   //set OLED I2C
