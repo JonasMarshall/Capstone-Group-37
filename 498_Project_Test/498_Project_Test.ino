@@ -3,13 +3,9 @@
 #include "DEV_Config.h"
 #include "Debug.h"
 #include "ImageData.h"
-<<<<<<< HEAD
 #include "Stroke_Detector.h"
 #include "GPS_Config.h"
-=======
 #include <Arduino_LSM9DS1.h>
-#include "Stroke_Detector.h"
->>>>>>> 879202e2e8c4509413664ab91d800c0e7f98237b
 
 int screen = 0;
 int selection = 0;
