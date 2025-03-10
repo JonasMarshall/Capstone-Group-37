@@ -53,7 +53,6 @@ while(true){
     IMU.readAcceleration(x, y, z);
     if (samplerate == 10){
       totalAcceleration = (x+y+z);
-  
     current_Millis = millis();
 
     // GPS calculations
@@ -91,7 +90,8 @@ while(true){
     accArray[counter] = totalAcceleration;
     distance_data_points[counter] = distance;
     mps_data_points[counter] = speed;
-    split_data_points[counter] = String(split_minutes) + ":" + String(split_seconds, 2);
+    String split_time = String(split_minutes) + ":" + String(split_seconds, 2);
+    split_data_points[counter] = split_time;
 
     counter = counter+1;
     if (counter == 75){
@@ -131,7 +131,7 @@ while(true){
 
 
         for (int i = 0;i<72;i++){
-          filteredpoints[i] =(total_data_points[i] + total_data_points[i+1]+ total_data_points[i+2]+ total_data_points[i+3] + total_data_points[i+4])/5;
+          filteredpoints[i] =(accArray[i] + accArray[i+1]+ accArray[i+2]+ accArray[i+3] + accArray[i+4])/5;
         }
         // Serial.println("Filtered Data Points");
         // for(int i = 0; i < 72; i++){
@@ -205,7 +205,31 @@ while(true){
     IMU.readAcceleration(x, y, z);
     if (samplerate == 10){
       avgA = (x+y+z);
-      current_Millis = millis(); 
+      current_Millis = millis();
+          // GPS calculations
+    if (Serial1.available()) {
+      String data = Serial1.readStringUntil('\n');
+      data.trim();
+
+      if (data.startsWith("$GPRMC") && parseGPSData(data)) {
+        // Calculate distance if we have previous valid coordinates
+        if (prevLat != 0.0 && prevLon != 0.0) {
+          double distance = haversine(prevLat, prevLon, lat, lon);
+          
+          // Apply thresholds
+          if (distance < MAX_DISTANCE_THRESHOLD && 
+              speed < MAX_SPEED_THRESHOLD &&
+              speed > MIN_SPEED_THRESHOLD) {
+            totalDistance += distance;
+          }
+        }
+      }
+    }
+
+    int integer_speed = round(speed);
+    int split_minutes = (500/integer_speed) % 60;
+    float split_seconds = (500/integer_speed) - split_minutes * 60;
+
       samplerate = 0;
         //Storing Acceleration data to CSV file and SD card
           // Initialize SD card

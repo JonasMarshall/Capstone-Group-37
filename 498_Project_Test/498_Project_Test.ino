@@ -116,17 +116,18 @@ void timer(){
 
 void numerical_data(){
   timer();
-  String velocity = String(data[count][1]);
+  String velocity_text = String(speed);
   String avgA_text = String(avgA);
+  String distance_text = String(totalDistance);
   Paint_DrawString_EN(0, 0, "Avg Acc:", &Font12, BLACK, BLUE);
   Paint_DrawString_EN(0, 20, "Avg Vel:", &Font12, BLACK, BLUE);
-  Paint_DrawString_EN(0, 40, "Str/Min:", &Font12, BLACK, BLUE);
+  Paint_DrawString_EN(0, 40, "500 m:", &Font12, BLACK, BLUE);
   Paint_DrawString_EN(0, 60, "Dist:", &Font12, BLACK, BLUE);
   Paint_DrawString_EN(0, 80, "Time:", &Font12, BLACK, BLUE);
   Paint_DrawString_EN(90, 0, avgA_text.c_str(), &Font12, BLACK, BLUE);
-  Paint_DrawString_EN(90, 20, velocity.c_str(), &Font12, BLACK, BLUE);
-  Paint_DrawString_EN(90, 40, "3", &Font12,  BLACK, BLUE);
-  Paint_DrawString_EN(90, 60, "4", &Font12, BLACK, BLUE);
+  Paint_DrawString_EN(90, 20, velocity_text.c_str(), &Font12, BLACK, BLUE);
+  Paint_DrawString_EN(90, 40, split_time.c_str(), &Font12,  BLACK, BLUE);
+  Paint_DrawString_EN(90, 60, distance_text.c_str(), &Font12, BLACK, BLUE);
   Paint_DrawTime(50, 80,&currentTime,&Font12,BLACK, BLUE);
   count++;
 }
