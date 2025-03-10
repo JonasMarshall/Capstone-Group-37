@@ -27,8 +27,6 @@ int dist = 0;
 int front = 0;
 int back = 0;
 
-float avgVelTotal = 0.0;
-
 float StrokeData[72][2];
 
 float filteredpoints[72];
@@ -38,7 +36,7 @@ float mps_data_points[76];
 String split_data_points[76];
 float new_data[72];
 
-
+float accArray[76];
 float timeArray[76];
 float velArray[76];
 float distArray[76];
@@ -46,23 +44,6 @@ float distArray[76];
 int BP = 0;
 
 int samplerate = 0;
-//call in setup to setup strokeDetector
-// void strokeSetup() {
-//   if (!IMU.begin()) {
-//     Serial.println("Failed to initialize IMU!");
-//     while (1);
-//   }
-
-//   // Serial.print(IMU.accelerationSampleRate());
-
-//   }
-
-// void setup() {
-//   Serial.begin(9600);
-//   // delay(10000);  // Optional delay to ensure serial is ready
-//   Serial.println("Started");
-//   strokeSetup(); //setup stroke detector
-// }
 
 //call in loop for stroke detector functionality
 void strokeLoop() {
@@ -107,7 +88,7 @@ while(true){
     // Serial.println(counter);
     samplerate = 0;
     timeArray[counter] = current_Millis;
-    acceleration_data_points[counter] = totalAcceleration;
+    accArray[counter] = totalAcceleration;
     distance_data_points[counter] = distance;
     mps_data_points[counter] = speed;
     split_data_points[counter] = String(split_minutes) + ":" + String(split_seconds, 2);
@@ -134,7 +115,7 @@ while(true){
             dataFile.print(",");
             dataFile.print(split_data_points[i]); // Speed in meters per second
             dataFile.print(",");
-            dataFile.println(acceleration_data_points[i]); // Acceleration in meters per second squared
+            dataFile.println(accArray[i]); // Acceleration in meters per second squared
         }
         dataFile.close();
         Serial.println("data written to data.csv");
@@ -217,7 +198,43 @@ while(true){
   }
 }
 }
-
-// void loop() {
-//   strokeLoop();
-// }
+void numLoop() {
+while(true){
+  // BP = Serial.parseInt();  
+  if (IMU.accelerationAvailable()) {
+    IMU.readAcceleration(x, y, z);
+    if (samplerate == 10){
+      avgA = (x+y+z);
+      current_Millis = millis(); 
+      samplerate = 0;
+        //Storing Acceleration data to CSV file and SD card
+          // Initialize SD card
+        // if (!SD.begin(chipSelect)) {
+        //   Serial.println("SD card initialization failed!");
+        //   return;
+        // }
+        // Serial.println("SD card initialized.");
+        //   // Create or open a CSV file
+        // dataFile = SD.open("data.csv", FILE_WRITE);
+        // if (dataFile) {
+        //   // Write the header row
+        //   for (int i = 0; i<counter;i++){
+        //       dataFile.print(current_Millis); // Timestamp in milliseconds
+        //       dataFile.print(",");
+        //       dataFile.print(distArray[i]); // Distance in meters
+        //       dataFile.print(",");
+        //       dataFile.print(velArray[i]); // Velocity in meters per second
+        //       dataFile.print(",");
+        //       dataFile.println(avgA); // Acceleration in meters per second squared
+        //   }
+        //   dataFile.close();
+        //   Serial.println("data written to data.csv");
+        // } else {
+        //   Serial.println("Error opening data.csv");
+        // }
+        break;
+    }
+    samplerate = samplerate + 1;
+  }
+}
+}

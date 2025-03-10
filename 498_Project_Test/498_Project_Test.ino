@@ -73,15 +73,15 @@ void setup() {
 
 }
 
-void get_Acceleration(){
-  float x, y, z;
-  float lowPassAcceleration = 0;
-  if (IMU.accelerationAvailable()) {
-    IMU.readAcceleration(x, y, z);
-    avgAcceleration = x+y+z;
-  }
-  Serial.println(avgAcceleration);
-}
+// void get_Acceleration(){
+//   float x, y, z;
+//   float lowPassAcceleration = 0;
+//   if (IMU.accelerationAvailable()) {
+//     IMU.readAcceleration(x, y, z);
+//     avgAcceleration = x+y+z;
+//   }
+//   Serial.println(avgAcceleration);
+// }
 
 
 void home_screen(){
@@ -117,13 +117,13 @@ void timer(){
 void numerical_data(){
   timer();
   String velocity = String(data[count][1]);
-  String avgA = String(avgAcceleration);
+  String avgA_text = String(avgA);
   Paint_DrawString_EN(0, 0, "Avg Acc:", &Font12, BLACK, BLUE);
   Paint_DrawString_EN(0, 20, "Avg Vel:", &Font12, BLACK, BLUE);
   Paint_DrawString_EN(0, 40, "Str/Min:", &Font12, BLACK, BLUE);
   Paint_DrawString_EN(0, 60, "Dist:", &Font12, BLACK, BLUE);
   Paint_DrawString_EN(0, 80, "Time:", &Font12, BLACK, BLUE);
-  Paint_DrawString_EN(90, 0, avgA.c_str(), &Font12, BLACK, BLUE);
+  Paint_DrawString_EN(90, 0, avgA_text.c_str(), &Font12, BLACK, BLUE);
   Paint_DrawString_EN(90, 20, velocity.c_str(), &Font12, BLACK, BLUE);
   Paint_DrawString_EN(90, 40, "3", &Font12,  BLACK, BLUE);
   Paint_DrawString_EN(90, 60, "4", &Font12, BLACK, BLUE);
@@ -321,7 +321,7 @@ void loop() {
       stop_screen();
       break;
     case 4:
-      get_Acceleration();
+      numLoop();
       numerical_data();
       break;
     case 5:
