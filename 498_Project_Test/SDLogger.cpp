@@ -48,11 +48,9 @@ void createNewSdFile() {
     Serial.println("Error opening file");
   }
 
-
 }
 
 void dataLogger(float strokeRate[], float acceleration[], float velocity[], float time[], float distance[], int numDataPoints){
-
   /*
  if (!SD.begin(chipSelect)) {
     Serial.println("SD card initialization failed!");
@@ -60,7 +58,7 @@ void dataLogger(float strokeRate[], float acceleration[], float velocity[], floa
   }
   Serial.println("SD card initialized.");
   */
-
+  
   // Create or open a CSV file
   dataFile = SD.open(filename, FILE_WRITE);
   if (dataFile) {

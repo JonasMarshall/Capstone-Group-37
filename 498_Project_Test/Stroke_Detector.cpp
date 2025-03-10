@@ -55,44 +55,6 @@ while(true){
       totalAcceleration = (x+y+z);
     current_Millis = millis();
 
-    // GPS calculations
-    if (Serial1.available()) {
-      String data = Serial1.readStringUntil('\n');
-      data.trim();
-
-      if (data.startsWith("$GPRMC") && parseGPSData(data)) {
-        // Calculate distance if we have previous valid coordinates
-        if (prevLat != 0.0 && prevLon != 0.0) {
-          double distance = haversine(prevLat, prevLon, lat, lon);
-          
-          // Apply thresholds
-          if (distance < MAX_DISTANCE_THRESHOLD && 
-              speed < MAX_SPEED_THRESHOLD &&
-              speed > MIN_SPEED_THRESHOLD) {
-            totalDistance += distance;
-          }
-        }
-      }
-    }
-
-    int integer_speed = round(speed);
-    int split_minutes = (500/integer_speed) % 60;
-    float split_seconds = (500/integer_speed) - split_minutes * 60;
-
-    // second = current_Millis /1000;
-    // Serial.print(second);
-    // Serial.print(",");
-    // Serial.print(totalAcceleration);
-    // Serial.print("-");
-    // Serial.println(counter);
-    samplerate = 0;
-    timeArray[counter] = current_Millis;
-    accArray[counter] = totalAcceleration;
-    distance_data_points[counter] = distance;
-    mps_data_points[counter] = speed;
-    String split_time = String(split_minutes) + ":" + String(split_seconds, 2);
-    split_data_points[counter] = split_time;
-
     counter = counter+1;
     if (counter == 75){
       //Storing Acceleration data to CSV file and SD card
