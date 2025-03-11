@@ -14,8 +14,10 @@ void SD_System_Init()
 }
 
 void createNewSdFile() {
+  SPI.endTransaction();
   OLED_CS_1; // turn screen off
   SD_CS_0; // turn SD on
+  SPI.beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE0));
   delay(100);
   if (!SD.begin(SD_CS)) {
     Serial.println("SD card initialization failed!");
@@ -51,9 +53,12 @@ void createNewSdFile() {
     Serial.println("headers written to file");
   } else {
     Serial.println("Error opening file");
-    SD_CS_1; // turn SD off
-    OLED_CS_0; // turn screen on
   }
+
+  SPI.endTransaction();
+  SD_CS_1; // turn SD off
+  OLED_CS_0; // turn screen on
+  SPI.beginTransaction(SPISettings(8000000, MSBFIRST, SPI_MODE3));
 
 }
 
@@ -65,8 +70,10 @@ void dataLogger(float strokeRate, float acceleration[], float velocity[], float 
   }
   Serial.println("SD card initialized.");
   */
+  SPI.endTransaction();
   OLED_CS_1; // turn screen off
   SD_CS_0; // turn SD on
+  SPI.beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE0));
   // Create or open a CSV file
   dataFile = SD.open(filename, FILE_WRITE);
   if (dataFile) {
@@ -83,10 +90,12 @@ void dataLogger(float strokeRate, float acceleration[], float velocity[], float 
       dataFile.println(acceleration[i]); // Acceleration in meters per second squared
     }
     dataFile.close();
-    SD_CS_1;  // turn SD off
-    OLED_CS_0;  // turn SD on
     Serial.println("data written to file");
   } else {
     Serial.println("Error opening file");
   }
+  SPI.endTransaction();
+  SD_CS_1; // turn SD off
+  OLED_CS_0; // turn screen on
+  SPI.beginTransaction(SPISettings(8000000, MSBFIRST, SPI_MODE3));
 }

@@ -26,7 +26,7 @@ uint8_t System_Init(void)
   Serial.println("USE_SPI");
   //set OLED SPI
   
-  SPI.begin();
+  // SPI.begin();
     
     // Set SPI settings correctly
   SPI.beginTransaction(SPISettings(8000000, MSBFIRST, SPI_MODE3));
