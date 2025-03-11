@@ -161,77 +161,78 @@ while(true){
 }
 }
 void numLoop() {
-while(true){
-  // BP = Serial.parseInt();  
-  if (IMU.accelerationAvailable()) {
-    IMU.readAcceleration(x, y, z);
-    if (samplerate == 10){
-      avgA = (x+y+z);
-      current_Millis = millis();
-          // GPS calculations
-      if (Serial1.available()) {
-        String data = Serial1.readStringUntil('\n');
-        data.trim();
+  while(true){
+    // BP = Serial.parseInt();  
+    if (IMU.accelerationAvailable()) {
+      IMU.readAcceleration(x, y, z);
+      if (samplerate == 10){
+        avgA = (x+y+z);
+        current_Millis = millis();
+            // GPS calculations
+        if (Serial1.available()) {
+          String data = Serial1.readStringUntil('\n');
+          data.trim();
 
-        if (data.startsWith("$GPRMC") && parseGPSData(data)) {
-          // Calculate distance if we have previous valid coordinates
-          if (prevLat != 0.0 && prevLon != 0.0) {
-            double distance = haversine(prevLat, prevLon, lat, lon);
-            
-            // Apply thresholds
-            if (distance < MAX_DISTANCE_THRESHOLD && 
-                speed < MAX_SPEED_THRESHOLD &&
-                speed > MIN_SPEED_THRESHOLD) {
-              totalDistance += distance;
+          if (data.startsWith("$GPRMC") && parseGPSData(data)) {
+            // Calculate distance if we have previous valid coordinates
+            if (prevLat != 0.0 && prevLon != 0.0) {
+              double distance = haversine(prevLat, prevLon, lat, lon);
+              
+              // Apply thresholds
+              if (distance < MAX_DISTANCE_THRESHOLD && 
+                  speed < MAX_SPEED_THRESHOLD &&
+                  speed > MIN_SPEED_THRESHOLD) {
+                totalDistance += distance;
+              }
             }
           }
         }
+
+        integer_speed = round(speed);
+        split_minutes = (500/integer_speed) % 60;
+        split_seconds = (500/integer_speed) - split_minutes * 60;
+
+        timeArray[numCounter] = current_Millis;
+        accArray[numCounter] = totalAcceleration;
+        distance_data_points[numCounter] = distance;
+        mps_data_points[numCounter] = speed;
+        String split_time = String(split_minutes) + ":" + String(split_seconds, 2);
+        split_data_points[numCounter] = split_time;
+        numCounter = numCounter + 1;
+        samplerate = 0;
+        if (numCounter == 75){
+          numCounter = 0;
+            for (int i = 0;i<72;i++){
+            filteredpoints[i] =(accArray[i] + accArray[i+1]+ accArray[i+2]+ accArray[i+3] + accArray[i+4])/5;
+          }
+          minVal_1 = filteredpoints[0];
+          for (int j = 0;j<72;j++){
+            if (filteredpoints[j] < minVal_1){
+              minVal_1 = filteredpoints[j];
+              Mindex = j;
+            }
+          }
+          minVal_2 = filteredpoints[0];
+          for (int j = 0;j<72;j++){
+            if (filteredpoints[j] < minVal_2 && filteredpoints[j]!= minVal_1 && (j > Mindex+ 5 || j < Mindex-5) ){
+              minVal_2 = filteredpoints[j];
+              Maxdex = j;
+            }
+          }
+          if (Mindex > Maxdex){
+            temp = Mindex;
+            Mindex = Maxdex;
+            Maxdex = temp;
+          }
+          time_start = timeArray[Mindex];
+          time_end = timeArray[Maxdex];
+          strokeTime = time_end - time_start;
+          spm = 60/strokeTime;
+          //Store Data
+        }
+        break;
       }
-
-      integer_speed = round(speed);
-      split_minutes = (500/integer_speed) % 60;
-      split_seconds = (500/integer_speed) - split_minutes * 60;
-
-      timeArray[numCounter] = current_Millis;
-      accArray[numCounter] = totalAcceleration;
-      distance_data_points[numCounter] = distance;
-      mps_data_points[numCounter] = speed;
-      String split_time = String(split_minutes) + ":" + String(split_seconds, 2);
-      split_data_points[numCounter] = split_time;
-      numCounter = numCounter + 1;
-      samplerate = 0;
-      if (numCounter == 75){
-        numCounter = 0;
-          for (int i = 0;i<72;i++){
-          filteredpoints[i] =(accArray[i] + accArray[i+1]+ accArray[i+2]+ accArray[i+3] + accArray[i+4])/5;
-        }
-        minVal_1 = filteredpoints[0];
-        for (int j = 0;j<72;j++){
-          if (filteredpoints[j] < minVal_1){
-            minVal_1 = filteredpoints[j];
-            Mindex = j;
-          }
-        }
-        minVal_2 = filteredpoints[0];
-        for (int j = 0;j<72;j++){
-          if (filteredpoints[j] < minVal_2 && filteredpoints[j]!= minVal_1 && (j > Mindex+ 5 || j < Mindex-5) ){
-            minVal_2 = filteredpoints[j];
-            Maxdex = j;
-          }
-        }
-        if (Mindex > Maxdex){
-          temp = Mindex;
-          Mindex = Maxdex;
-          Maxdex = temp;
-        }
-        time_start = timeArray[Mindex];
-        time_end = timeArray[Maxdex];
-        strokeTime = time_end - time_start;
-        spm = 60/strokeTime;
-        //Store Data
-    }
-    break;
+      samplerate = samplerate + 1;
+    } 
   }
-  samplerate = samplerate + 1;
-}
 }

@@ -1,6 +1,16 @@
 #include <Arduino.h>
 #include "GPS_Config.h"
 
+// GPS Data
+double lat = 0.0, lon = 0.0;
+double prevLat = 0.0, prevLon = 0.0;
+double totalDistance = 0.0;
+double distance = 0.0;
+double speed = 0.0; // calculated in m/s
+
+double speedHistory[SPEED_SAMPLES];
+int speedIndex = 0;
+
 // Checksum validation
 bool validateChecksum(String nmeaSentence) {
   int asteriskIndex = nmeaSentence.indexOf('*');
@@ -90,14 +100,4 @@ double haversine(double lat1, double lon1, double lat2, double lon2) {
   double c = 2 * atan2(sqrt(a), sqrt(1-a)); 
   
   return R * c * 1000; // Multiply result to get distance in meters
-}
-
-void setup() {
-  Serial.begin(9600);
-  Serial1.begin(9600);
-  // Initialize speed history
-  for (int i = 0; i < SPEED_SAMPLES; i++) {
-    speedHistory[i] = 0.0;
-  }
-  Serial.println("GPS Accuracy Test Initialized...");
 }
