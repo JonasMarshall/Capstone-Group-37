@@ -1,28 +1,31 @@
-#include "OLED_Driver.h"
+#include "OLED_Driver.h"    // Import libraries and files
 #include "GUI_paint.h"
 #include "DEV_Config.h"
 #include "Debug.h"
 #include "ImageData.h"
 #include "Stroke_Detector.h"
 #include "GPS_Config.h"
+#include "SDLogger.h"
 #include <Arduino_LSM9DS1.h>
 
-int screen = 0;
-int selection = 0;
-UBYTE *BlackImage;
-int button = 0;
-PAINT_TIME currentTime;
-static uint32_t start_Millis = 0;
+int screen = 0;   // tells you which screen you're on
+int button = 0;   // reads keyboard input from serial monitor, will need to get rid of once we implement buttons
+
+UBYTE *BlackImage; // Graphics stuff
+PAINT_TIME currentTime; // Time variable for graphics stuff 
+
+static uint32_t start_Millis = 0; //time variables
 static uint32_t current_Millis = 0;
 static uint32_t elapsed_Millis = 0;
-unsigned long seconds;
+
+
+unsigned long seconds;  // holds time
 unsigned long minutes;
 unsigned long hours;
-bool started = false;
-int count = 0;
 
-float avgAcceleration;
-// const int B1Pin = 2;
+bool started = false; // checks to see if run started
+
+// const int B1Pin = 2;   // for when we switch to buttons
 // int B1State = 0;
 // const int B2Pin = 2;
 // int B2State = 0;
@@ -32,16 +35,11 @@ float avgAcceleration;
 // int B4State = 0;
 // const int B5Pin = 2;
 // int B5State = 0;
-// const int B6Pin = 2;
-// int B6State = 0;
-
-float data[][2] = {{0.000,1.000},{0.102,0.472},{0.204,-0.369},{0.306,-0.734},{0.408,-0.392},{0.510,0.228},{0.612,0.535},{0.714,0.320},{0.816,-0.135},{0.918,-0.388},{1.020,-0.256},{1.122,0.074},{1.224,0.279},{1.327,0.203},{1.429,-0.035},{1.531,-0.199},{1.633,-0.159},{1.735,0.012},{1.837,0.141},{1.939,0.124},{2.041,0.002},{2.143,-0.099},{2.245,-0.095},{2.347,-0.009},{2.449,0.069},{2.551,0.073},{2.653,0.012},{2.755,-0.048},{2.857,-0.055},{2.959,-0.013},{3.061,0.033},{3.163,0.041},{3.265,0.013},{3.367,-0.022},{3.469,-0.031},{3.571,-0.011},{3.673,0.014},{3.776,0.023},{3.878,0.010},{3.980,-0.009},{4.082,-0.017},{4.184,-0.008},{4.286,0.006},{4.388,0.012},{4.490,0.007},{4.592,-0.004},{4.694,-0.009},{4.796,-0.006},{4.898,0.002},{5.000,0.007}};
 
 
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(9600);
-  Serial.print("Test");
+  Serial.begin(9600);   // Serial stuff
   System_Init();
   if(USE_IIC) {
     Serial.print("Only USE_SPI_4W, Please revise DEV_config.h !!!");
@@ -54,37 +52,30 @@ void setup() {
     speedHistory[i] = 0.0;
   }
 
-  Serial.print(F("OLED_Init()...\r\n"));
+  Serial.print(F("OLED_Init()...\r\n"));  // Graphing stuff
   OLED_1in5_rgb_Init();
   Driver_Delay_ms(500); 
   OLED_1in5_rgb_Clear();  
-
   Serial.print("Paint_NewImage\r\n");
   Paint_NewImage(BlackImage, OLED_1in5_RGB_WIDTH, OLED_1in5_RGB_HEIGHT, 270, BLACK);  
   Paint_SetScale(65);
-  // pinMode(B1Pin, INPUT);
-  home_screen();
-  // graphical_data();
-  // plotter();
-  if (!IMU.begin()) {
+
+  home_screen();  // start with home screen
+  // pinMode(B1Pin, INPUT); // buttons
+  // pinMode(B2Pin, INPUT);
+  // pinMode(B3Pin, INPUT);
+  // pinMode(B4Pin, INPUT);
+  // pinMode(B5Pin, INPUT);
+
+  if (!IMU.begin()) {     // check accelerometer
     Serial.println("Failed to initialize IMU!");
     while (1);
   }
 
 }
+//Drawing functions
 
-// void get_Acceleration(){
-//   float x, y, z;
-//   float lowPassAcceleration = 0;
-//   if (IMU.accelerationAvailable()) {
-//     IMU.readAcceleration(x, y, z);
-//     avgAcceleration = x+y+z;
-//   }
-//   Serial.println(avgAcceleration);
-// }
-
-
-void home_screen(){
+void home_screen(){ 
   Paint_DrawString_EN(20, 0, "Start", &Font16, WHITE, BLUE);
   Paint_DrawString_EN(20, 50, "Prev Data", &Font16, WHITE, BLUE);
   Paint_DrawCircle(10, 6, 5, CYAN, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
@@ -103,7 +94,7 @@ void home_screen_2(){
   Paint_DrawCircle(10, 56, 5, CYAN, DOT_PIXEL_1X1, DRAW_FILL_FULL);
 }
 
-void timer(){
+void timer(){ // timer for display
   current_Millis = millis(); 
   elapsed_Millis = current_Millis - start_Millis;
   seconds = elapsed_Millis /1000;
@@ -116,7 +107,7 @@ void timer(){
 
 void numerical_data(){
   timer();
-  String velocity_text = String(speed);
+  String velocity_text = String(speed);   // converts the data to strings and displays them
   String avgA_text = String(avgA);
   String distance_text = String(totalDistance);
   String str_text = String(spm);
@@ -130,7 +121,6 @@ void numerical_data(){
   Paint_DrawString_EN(90, 40, str_text.c_str(), &Font12,  BLACK, BLUE);
   Paint_DrawString_EN(90, 60, distance_text.c_str(), &Font12, BLACK, BLUE);
   Paint_DrawTime(50, 80,&currentTime,&Font12,BLACK, BLUE);
-  count++;
 }
 
 void graphical_data(){
@@ -154,7 +144,7 @@ void stop_screen(){
   Paint_DrawCircle(10, 56, 5, CYAN, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
 }
 
-void minmax(float points[][2], float &xMin, float &xMax, float &yMin, float &yMax, int numPoints){
+void minmax(float points[][2], float &xMin, float &xMax, float &yMin, float &yMax, int numPoints){  // helper function calculates min and max
   xMax = points[0][0];
   xMin = points[0][0];
   yMin = points[0][1];
@@ -174,7 +164,7 @@ void minmax(float points[][2], float &xMin, float &xMax, float &yMin, float &yMa
     }
   }
 }
-int scaleValue(float value, float inMin, float inMax, float outMin, float outMax) {
+int scaleValue(float value, float inMin, float inMax, float outMin, float outMax) { // helper function, scales the data
     return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
 }
 
@@ -185,14 +175,14 @@ void scalePoints(float points[][2], int numPoints, float xMin, float xMax, float
     }
 }
 
-void zeroScale(float points[][2], int numPoints, float xMin, float xMax, float screenWidth){
+void zeroScale(float points[][2], int numPoints, float xMin, float xMax, float screenWidth){    // when data is zeroes, use this scaling function
     for (int i = 0; i < numPoints; i++) {
         points[i][0] = scaleValue(points[i][0], xMin, xMax, 20, screenWidth);   // Scale X
         points[i][1] = 40; // Scale Y
     }
 }
 
-void plotter(){
+void plotter(){ // plots data
   float xMin;
   float xMax;
   float yMin;
@@ -230,18 +220,18 @@ void plotter(){
 
 void loop() {
   // Getting button input
-  Serial.println("Enter button choice"); 
+  Serial.println("Enter button choice");  // gets input
   button = Serial.parseInt();
   // B1State = digitalRead(B1Pin);
 
-  if ((button == 1) ||(button == 2) ||(button == 3) ||(button == 4)){
-    if((screen == 4) ||(screen == 5)){
-      if (button == 4){
+  if ((button == 1) ||(button == 2) ||(button == 3) ||(button == 4)){ // check to see if there is button input
+    if((screen == 4) ||(screen == 5)){  // if on a data recording screen
+      if (button == 4){ // if stop button pressed stop screen
         OLED_1in5_rgb_Clear();
         // stop_screen();
         screen = 3;
       }
-      else if(button == 1){
+      else if(button == 1){ // page up
         OLED_1in5_rgb_Clear();
         if (screen <5){
           screen = screen +1;
@@ -251,7 +241,7 @@ void loop() {
         }
 
       }
-      else if(button == 2){
+      else if(button == 2){ // page down
         OLED_1in5_rgb_Clear();
         if (screen > 4){
           screen = screen -1;
@@ -261,7 +251,7 @@ void loop() {
         }
       }
     }  
-    else if ((screen == 0) || (screen == 3)){
+    else if ((screen == 0) || (screen == 3)){ // if stop screen or intital home screen fill in the first or second dot
       if(button == 1) {
           screen = 1;
           // home_screen_1();
@@ -271,17 +261,18 @@ void loop() {
           // home_screen_2();
       }
     }
-    else if (screen == 1){
+    else if (screen == 1){  // if screen 1, and press 3, start the run
       if (button == 3){
-          if (started == true){
+          if (started == true){ // if the run was started go see the data
             OLED_1in5_rgb_Clear();
             screen = 4;
           }
-          else{
+          else{   // if not started yet, start the run
             OLED_1in5_rgb_Clear();
             screen = 4;
             start_Millis = millis();
             started = true;
+            createNewSdFile(); // create a new SD file to save data
             // numerical_data();
           }
 
