@@ -50,111 +50,118 @@ float spm;
 
 //call in loop for stroke detector functionality
 void strokeLoop() {
-while(true){
-  if (IMU.accelerationAvailable()) {
-    IMU.readAcceleration(x, y, z);
-    if (samplerate == 10){
-      totalAcceleration = (x+y+z);
-      current_Millis = millis();
+  while(true){
+    if (IMU.accelerationAvailable()) {
+      IMU.readAcceleration(x, y, z);
+      if (samplerate == 10){
+        totalAcceleration = (x+y+z);
+        current_Millis = millis();
 
-      // GPS calculations
-      if (Serial1.available()) {
-        String data = Serial1.readStringUntil('\n');
-        data.trim();
+        // GPS calculations
+        if (Serial1.available()) {
+          String data = Serial1.readStringUntil('\n');
+          data.trim();
 
-        if (data.startsWith("$GPRMC") && parseGPSData(data)) {
-          // Calculate distance if we have previous valid coordinates
-          if (prevLat != 0.0 && prevLon != 0.0) {
-            double distance = haversine(prevLat, prevLon, lat, lon);
-            
-            // Apply thresholds
-            if (distance < MAX_DISTANCE_THRESHOLD && 
-                speed < MAX_SPEED_THRESHOLD &&
-                speed > MIN_SPEED_THRESHOLD) {
-              totalDistance += distance;
+          if (data.startsWith("$GPRMC") && parseGPSData(data)) {
+            // Calculate distance if we have previous valid coordinates
+            if (prevLat != 0.0 && prevLon != 0.0) {
+              double distance = haversine(prevLat, prevLon, lat, lon);
+              
+              // Apply thresholds
+              if (distance < MAX_DISTANCE_THRESHOLD && 
+                  speed < MAX_SPEED_THRESHOLD &&
+                  speed > MIN_SPEED_THRESHOLD) {
+                totalDistance += distance;
+              }
             }
           }
         }
+
+        integer_speed = round(speed);
+        split_minutes = (500/integer_speed) % 60;
+        split_seconds = (500/integer_speed) - split_minutes * 60;
+        samplerate = 0;
+        timeArray[counter] = current_Millis;
+        accArray[counter] = totalAcceleration;
+        distance_data_points[counter] = distance;
+        mps_data_points[counter] = speed;
+        String split_time = String(split_minutes) + ":" + String(split_seconds, 2);
+        split_data_points[counter] = split_time;
+
+        counter = counter+1;
+        if (counter == 75){
+          //Store Acceleration data to CSV file and SD card
+
+            for (int i = 0;i<72;i++){
+              filteredpoints[i] =(accArray[i] + accArray[i+1]+ accArray[i+2]+ accArray[i+3] + accArray[i+4])/5;
+            }
+            // Serial.println("Filtered Data Points");
+            // for(int i = 0; i < 72; i++){
+            //   Serial.println(filteredpoints[i]);
+            // }
+            minVal_1 = filteredpoints[0];
+            for (int j = 0;j<72;j++){
+              if (filteredpoints[j] < minVal_1){
+                minVal_1 = filteredpoints[j];
+                Mindex = j;
+              }
+            }
+            minVal_2 = filteredpoints[0];
+            for (int j = 0;j<72;j++){
+              if (filteredpoints[j] < minVal_2 && filteredpoints[j]!= minVal_1 && (j > Mindex+ 5 || j < Mindex-5) ){
+                minVal_2 = filteredpoints[j];
+                Maxdex = j;
+              }
+            }
+            if (Mindex > Maxdex){
+              temp = Mindex;
+              Mindex = Maxdex;
+              Maxdex = temp;
+            }
+            time_start = timeArray[Mindex];
+            time_end = timeArray[Maxdex];
+            strokeTime = time_end - time_start;
+            spm = 60/strokeTime;
+
+            dist = Maxdex - Mindex;
+
+            dataLogger(spm, accArray, mps_data_points, timeArray, distance_data_points, 76);
+
+            front = dist *0.3;
+            for (int k =0;k<dist;k++){
+              if(Mindex-front < 0){
+                new_data[k] = filteredpoints[k];
+              }
+              else{
+                new_data[k] = filteredpoints[Mindex-front+k];
+              }
+            }
+            for(int i = 0; i < dist; i++){
+              Serial.print(i);
+              Serial.print(",");
+              Serial.println(new_data[i]);
+            }
+            for(int i = 0; i < dist; i++){
+              StrokeData[i][0] = i;
+              StrokeData[i][1] = new_data[i];
+            }
+
+            Serial.println("Stroke Data Points");
+            for(int i = 0; i < dist; i++){
+              Serial.print(StrokeData[i][0]);
+              Serial.print(",");
+              Serial.println(StrokeData[i][1]);
+
+            }
+            counter = 0;
+            break;
+          }
       }
-
-      integer_speed = round(speed);
-      split_minutes = (500/integer_speed) % 60;
-      split_seconds = (500/integer_speed) - split_minutes * 60;
-      samplerate = 0;
-      timeArray[counter] = current_Millis;
-      accArray[counter] = totalAcceleration;
-      distance_data_points[counter] = distance;
-      mps_data_points[counter] = speed;
-      String split_time = String(split_minutes) + ":" + String(split_seconds, 2);
-      split_data_points[counter] = split_time;
-
-      counter = counter+1;
-      if (counter == 75){
-        //Store Acceleration data to CSV file and SD card
-          dataLogger(strokeRate[], accArray, mps_data_points, timeArray, distance_data_points, 76);
-
-          for (int i = 0;i<72;i++){
-            filteredpoints[i] =(accArray[i] + accArray[i+1]+ accArray[i+2]+ accArray[i+3] + accArray[i+4])/5;
-          }
-          // Serial.println("Filtered Data Points");
-          // for(int i = 0; i < 72; i++){
-          //   Serial.println(filteredpoints[i]);
-          // }
-          minVal_1 = filteredpoints[0];
-          for (int j = 0;j<72;j++){
-            if (filteredpoints[j] < minVal_1){
-              minVal_1 = filteredpoints[j];
-              Mindex = j;
-            }
-          }
-          minVal_2 = filteredpoints[0];
-          for (int j = 0;j<72;j++){
-            if (filteredpoints[j] < minVal_2 && filteredpoints[j]!= minVal_1 && (j > Mindex+ 5 || j < Mindex-5) ){
-              minVal_2 = filteredpoints[j];
-              Maxdex = j;
-            }
-          }
-          if (Mindex > Maxdex){
-            temp = Mindex;
-            Mindex = Maxdex;
-            Maxdex = temp;
-          }
-
-          dist = Maxdex - Mindex;
-          front = dist *0.3;
-          for (int k =0;k<dist;k++){
-            if(Mindex-front < 0){
-              new_data[k] = filteredpoints[k];
-            }
-            else{
-              new_data[k] = filteredpoints[Mindex-front+k];
-            }
-          }
-          for(int i = 0; i < dist; i++){
-            Serial.print(i);
-            Serial.print(",");
-            Serial.println(new_data[i]);
-          }
-          for(int i = 0; i < dist; i++){
-            StrokeData[i][0] = i;
-            StrokeData[i][1] = new_data[i];
-          }
-
-          Serial.println("Stroke Data Points");
-          for(int i = 0; i < dist; i++){
-            Serial.print(StrokeData[i][0]);
-            Serial.print(",");
-            Serial.println(StrokeData[i][1]);
-
-          }
-          counter = 0;
-          break;
-        }
+      samplerate = samplerate + 1;
     }
-    samplerate = samplerate + 1;
   }
 }
-}
+
 void numLoop() {
   while(true){
     // BP = Serial.parseInt();  
@@ -224,7 +231,7 @@ void numLoop() {
           time_end = timeArray[Maxdex];
           strokeTime = time_end - time_start;
           spm = 60/strokeTime;
-          // Insert Store Data
+          dataLogger(spm, accArray, mps_data_points, timeArray, distance_data_points, 76);
         }
         break;
       }
