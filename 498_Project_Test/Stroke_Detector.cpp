@@ -4,11 +4,13 @@
 #include "SDLogger.h"
 #include <SPI.h>
 #include <SD.h>
+#include "DEV_Config.h"
+
 
 //stroke detector variables
 float x, y, z;
 float totalAcceleration;
-
+float avgA;
 int counter = 0; // counter for the Strokeloop
 static uint32_t current_Millis = 0; // get the current time in milliseconds
 
@@ -124,9 +126,9 @@ void strokeLoop() {
             spm = 60/strokeTime;
 
             dist = Maxdex - Mindex;
-
+            OLED_CS_0;
             dataLogger(spm, accArray, mps_data_points, timeArray, distance_data_points, 76);
-
+            OLED_CS_1;
             front = dist *0.3;
             for (int k =0;k<dist;k++){
               if(Mindex-front < 0){
@@ -231,7 +233,9 @@ void numLoop() {
           time_end = timeArray[Maxdex];
           strokeTime = time_end - time_start;
           spm = 60/strokeTime;
+          OLED_CS_0;
           dataLogger(spm, accArray, mps_data_points, timeArray, distance_data_points, 76);
+          OLED_CS_1;
         }
         break;
       }

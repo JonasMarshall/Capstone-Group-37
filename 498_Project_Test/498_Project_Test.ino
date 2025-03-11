@@ -41,6 +41,7 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);   // Serial stuff
   System_Init();
+  SD_System_Init();
   if(USE_IIC) {
     Serial.print("Only USE_SPI_4W, Please revise DEV_config.h !!!");
   }
