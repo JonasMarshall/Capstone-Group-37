@@ -126,9 +126,7 @@ void strokeLoop() {
             spm = 60/strokeTime;
 
             dist = Maxdex - Mindex;
-            OLED_CS_0;
             dataLogger(spm, accArray, mps_data_points, timeArray, distance_data_points, 76);
-            OLED_CS_1;
             front = dist *0.3;
             for (int k =0;k<dist;k++){
               if(Mindex-front < 0){
@@ -233,9 +231,7 @@ void numLoop() {
           time_end = timeArray[Maxdex];
           strokeTime = time_end - time_start;
           spm = 60/strokeTime;
-          // OLED_CS_0;
-          // dataLogger(spm, accArray, mps_data_points, timeArray, distance_data_points, 76);
-          // OLED_CS_1;
+          dataLogger(spm, accArray, mps_data_points, timeArray, distance_data_points, 76);
         }
         break;
       }

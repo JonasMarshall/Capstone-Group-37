@@ -14,8 +14,8 @@ void SD_System_Init()
 }
 
 void createNewSdFile() {
-  OLED_CS_0;
-  SD_CS_1;
+  OLED_CS_1; // turn screen off
+  SD_CS_0; // turn SD on
   delay(100);
   if (!SD.begin(SD_CS)) {
     Serial.println("SD card initialization failed!");
@@ -51,8 +51,8 @@ void createNewSdFile() {
     Serial.println("headers written to file");
   } else {
     Serial.println("Error opening file");
-    SD_CS_0;
-    OLED_CS_1;
+    SD_CS_1; // turn SD off
+    OLED_CS_0; // turn screen on
   }
 
 }
@@ -65,8 +65,8 @@ void dataLogger(float strokeRate, float acceleration[], float velocity[], float 
   }
   Serial.println("SD card initialized.");
   */
-  OLED_CS_0;
-  SD_CS_1;
+  OLED_CS_1; // turn screen off
+  SD_CS_0; // turn SD on
   // Create or open a CSV file
   dataFile = SD.open(filename, FILE_WRITE);
   if (dataFile) {
@@ -83,8 +83,8 @@ void dataLogger(float strokeRate, float acceleration[], float velocity[], float 
       dataFile.println(acceleration[i]); // Acceleration in meters per second squared
     }
     dataFile.close();
-    SD_CS_0;
-    OLED_CS_1;
+    SD_CS_1;  // turn SD off
+    OLED_CS_0;  // turn SD on
     Serial.println("data written to file");
   } else {
     Serial.println("Error opening file");
