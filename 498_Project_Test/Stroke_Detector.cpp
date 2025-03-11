@@ -8,7 +8,7 @@
 //stroke detector variables
 float x, y, z;
 float totalAcceleration;
-
+float avgA;
 int counter = 0; // counter for the Strokeloop
 static uint32_t current_Millis = 0; // get the current time in milliseconds
 
