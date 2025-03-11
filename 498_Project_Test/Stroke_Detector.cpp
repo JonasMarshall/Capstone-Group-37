@@ -126,7 +126,7 @@ void strokeLoop() {
             spm = 60/strokeTime;
 
             dist = Maxdex - Mindex;
-            dataLogger(spm, accArray, mps_data_points, timeArray, distance_data_points, 76);
+            //dataLogger(spm, accArray, mps_data_points, timeArray, distance_data_points, 76);
             front = dist *0.3;
             for (int k =0;k<dist;k++){
               if(Mindex-front < 0){
@@ -191,6 +191,11 @@ void numLoop() {
         }
 
         integer_speed = round(speed);
+        // Error Check 1: Prevent division by zero in split calculation
+        if(integer_speed == 0) {
+          Serial.println("Error: Zero speed detected. Skipping split calculation");
+          integer_speed = 1; // Set to minimum safe value
+        }
         split_minutes = (500/integer_speed) % 60;
         split_seconds = (500/integer_speed) - split_minutes * 60;
 
@@ -231,7 +236,7 @@ void numLoop() {
           time_end = timeArray[Maxdex];
           strokeTime = time_end - time_start;
           spm = 60/strokeTime;
-          dataLogger(spm, accArray, mps_data_points, timeArray, distance_data_points, 76);
+          //dataLogger(spm, accArray, mps_data_points, timeArray, distance_data_points, 76);
         }
         break;
       }
