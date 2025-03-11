@@ -233,9 +233,9 @@ void numLoop() {
           time_end = timeArray[Maxdex];
           strokeTime = time_end - time_start;
           spm = 60/strokeTime;
-          OLED_CS_0;
-          dataLogger(spm, accArray, mps_data_points, timeArray, distance_data_points, 76);
-          OLED_CS_1;
+          // OLED_CS_0;
+          // dataLogger(spm, accArray, mps_data_points, timeArray, distance_data_points, 76);
+          // OLED_CS_1;
         }
         break;
       }

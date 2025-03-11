@@ -36,11 +36,11 @@ bool started = false; // checks to see if run started
 // const int B5Pin = 2;
 // int B5State = 0;
 
-
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);   // Serial stuff
   System_Init();
+  OLED_CS_1;
   SD_System_Init();
   if(USE_IIC) {
     Serial.print("Only USE_SPI_4W, Please revise DEV_config.h !!!");
@@ -273,7 +273,7 @@ void loop() {
             screen = 4;
             start_Millis = millis();
             started = true;
-            createNewSdFile(); // create a new SD file to save data
+            // createNewSdFile(); // create a new SD file to save data
             // numerical_data();
           }
 
