@@ -16,8 +16,8 @@ void SD_System_Init()
 void createNewSdFile() {
   OLED_CS_1; // turn screen off
   SD_CS_0; // turn SD on
-  delay(100);
-  if (!SD.begin(SD_CS)) {
+  delay(1000);
+  if (!SD.begin(SD_CS, SPI_HALF_SPEED)) {
     Serial.println("SD card initialization failed!");
     return;
   }

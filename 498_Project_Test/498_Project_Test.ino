@@ -273,7 +273,7 @@ void loop() {
             screen = 4;
             start_Millis = millis();
             started = true;
-            // createNewSdFile(); // create a new SD file to save data
+            createNewSdFile(); // create a new SD file to save data
             // numerical_data();
           }
 
