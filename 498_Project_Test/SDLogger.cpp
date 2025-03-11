@@ -8,7 +8,6 @@ File dataFile;
 
 int chipSelect = 10;
 
-
 void createNewSdFile() {
 
   
@@ -58,7 +57,7 @@ void dataLogger(float strokeRate[], float acceleration[], float velocity[], floa
   }
   Serial.println("SD card initialized.");
   */
-  
+
   // Create or open a CSV file
   dataFile = SD.open(filename, FILE_WRITE);
   if (dataFile) {
