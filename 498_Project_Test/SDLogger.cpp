@@ -6,12 +6,16 @@ char filename[20];
 
 File dataFile;
 
-int chipSelect = 10;
+void SD_System_Init()
+{
+  //set pin
+  pinMode(SD_CS, OUTPUT);
+}
 
 void createNewSdFile() {
 
-  
-  if (!SD.begin(chipSelect)) {
+  SD_CS_1;
+  if (!SD.begin(SD_CS)) {
     Serial.println("SD card initialization failed!");
     return;
   }
@@ -45,6 +49,7 @@ void createNewSdFile() {
     Serial.println("headers written to file");
   } else {
     Serial.println("Error opening file");
+    SD_CS_0;
   }
 
 }
@@ -57,7 +62,7 @@ void dataLogger(float strokeRate, float acceleration[], float velocity[], float 
   }
   Serial.println("SD card initialized.");
   */
-
+  SD_CS_1;
   // Create or open a CSV file
   dataFile = SD.open(filename, FILE_WRITE);
   if (dataFile) {
@@ -74,6 +79,7 @@ void dataLogger(float strokeRate, float acceleration[], float velocity[], float 
       dataFile.println(acceleration[i]); // Acceleration in meters per second squared
     }
     dataFile.close();
+    SD_CS_0;
     Serial.println("data written to file");
   } else {
     Serial.println("Error opening file");
