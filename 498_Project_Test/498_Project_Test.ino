@@ -303,25 +303,43 @@ void loop() {
   }
   switch (screen){
     case 0:
+      Serial.println("Loading home screen...");
       home_screen();
+      Serial.println("Home screen completed");
       break;
     case 1:
+      Serial.println("Loading home screen 1...");
       home_screen_1();
+      Serial.println("Home screen 1 completed");
       break;
     case 2:
+      Serial.println("Loading home screen 2...");
       home_screen_2();
+      Serial.println("Home screen 2 completed");
       break;
     case 3:
+      Serial.println("Loading stop screen...");
       stop_screen();
+      Serial.println("Stop screen completed");
       break;
     case 4:
+      Serial.println("Loading num loop...");
       numLoop();
+      Serial.println("Num loop completed...");
+      Serial.println("Loading numerical data...");
       numerical_data();
+      Serial.print("Numerical data completed...");
       break;
     case 5:
+      Serial.println("Loading stroke loop...");
       strokeLoop();
+      Serial.println("Stroke loop completed...");
+      Serial.println("Loading OLED...");
       OLED_1in5_rgb_Clear();
-      graphical_data();  
+      Serial.println("Completed OLED...");
+      Serial.println("Loading Graphical data...");
+      graphical_data();
+      Serial.println("Graphical data completed...");  
       plotter();
       break;
   }
