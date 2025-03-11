@@ -49,7 +49,7 @@ void createNewSdFile() {
 
 }
 
-void dataLogger(float strokeRate[], float acceleration[], float velocity[], float time[], float distance[], int numDataPoints){
+void dataLogger(float strokeRate, float acceleration[], float velocity[], float time[], float distance[], int numDataPoints){
   /*
  if (!SD.begin(chipSelect)) {
     Serial.println("SD card initialization failed!");
@@ -69,7 +69,7 @@ void dataLogger(float strokeRate[], float acceleration[], float velocity[], floa
       dataFile.print(",");
       dataFile.print(velocity[i]); // Speed in meters per second
       dataFile.print(",");
-      dataFile.print(strokeRate[i]); // Speed in meters per second
+      dataFile.print(strokeRate); // Speed in meters per second
       dataFile.print(",");
       dataFile.println(acceleration[i]); // Acceleration in meters per second squared
     }

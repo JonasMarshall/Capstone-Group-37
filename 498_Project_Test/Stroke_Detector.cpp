@@ -91,7 +91,6 @@ while(true){
       counter = counter+1;
       if (counter == 75){
         //Store Acceleration data to CSV file and SD card
-          dataLogger(float strokeRate[], accArray, mps_data_points, timeArray, distance_data_points, 76);
 
           for (int i = 0;i<72;i++){
             filteredpoints[i] =(accArray[i] + accArray[i+1]+ accArray[i+2]+ accArray[i+3] + accArray[i+4])/5;
@@ -119,8 +118,15 @@ while(true){
             Mindex = Maxdex;
             Maxdex = temp;
           }
+          time_start = timeArray[Mindex];
+          time_end = timeArray[Maxdex];
+          strokeTime = time_end - time_start;
+          spm = 60/strokeTime;
 
           dist = Maxdex - Mindex;
+
+          dataLogger(spm, accArray, mps_data_points, timeArray, distance_data_points, 76);
+
           front = dist *0.3;
           for (int k =0;k<dist;k++){
             if(Mindex-front < 0){
@@ -221,7 +227,7 @@ while(true){
         time_end = timeArray[Maxdex];
         strokeTime = time_end - time_start;
         spm = 60/strokeTime;
-        // Insert Store Data
+        dataLogger(spm, accArray, mps_data_points, timeArray, distance_data_points, 76);
       }
       break;
     }
