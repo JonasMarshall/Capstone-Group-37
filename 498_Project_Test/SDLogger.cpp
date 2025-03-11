@@ -1,6 +1,7 @@
 #include "SDLogger.h"
 #include <SPI.h>
 #include <SD.h>
+#include "DEV_Config.h"
 
 char filename[20];
 
@@ -13,8 +14,9 @@ void SD_System_Init()
 }
 
 void createNewSdFile() {
-
+  OLED_CS_0;
   SD_CS_1;
+  delay(100);
   if (!SD.begin(SD_CS)) {
     Serial.println("SD card initialization failed!");
     return;
@@ -50,6 +52,7 @@ void createNewSdFile() {
   } else {
     Serial.println("Error opening file");
     SD_CS_0;
+    OLED_CS_1;
   }
 
 }
@@ -62,6 +65,7 @@ void dataLogger(float strokeRate, float acceleration[], float velocity[], float 
   }
   Serial.println("SD card initialized.");
   */
+  OLED_CS_0;
   SD_CS_1;
   // Create or open a CSV file
   dataFile = SD.open(filename, FILE_WRITE);
@@ -80,6 +84,7 @@ void dataLogger(float strokeRate, float acceleration[], float velocity[], float 
     }
     dataFile.close();
     SD_CS_0;
+    OLED_CS_1;
     Serial.println("data written to file");
   } else {
     Serial.println("Error opening file");
