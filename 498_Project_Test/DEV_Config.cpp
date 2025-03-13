@@ -28,7 +28,7 @@ uint8_t System_Init(void)
   
   SPI.begin();
     
-    // Set SPI settings correctly
+  // Set SPI settings correctly
   SPI.beginTransaction(SPISettings(8000000, MSBFIRST, SPI_MODE3));
 
 #elif USE_IIC

@@ -31,7 +31,7 @@ bool parseGPSData(String gpsData) {
   if (!gpsData.startsWith("$GPRMC") || !validateChecksum(gpsData)) {
     return false;
   }
-
+  
   String fields[13];
   int fieldCount = 0;
   int start = 0;
@@ -72,7 +72,13 @@ bool parseGPSData(String gpsData) {
   if (lonDir == "W") lon = -lon;
 
   // Parse and smooth speed
-  double rawSpeed = fields[7].toFloat() * KNOTS_TO_MPS;
+  double rawSpeed = 0.0;
+  if (fields[7].length() > 0) {
+    rawSpeed = fields[7].toFloat() * KNOTS_TO_MPS;
+  } else {
+    return false;
+  }
+  
   speedHistory[speedIndex] = rawSpeed;
   speedIndex = (speedIndex + 1) % SPEED_SAMPLES;
   
@@ -100,4 +106,31 @@ double haversine(double lat1, double lon1, double lat2, double lon2) {
   double c = 2 * atan2(sqrt(a), sqrt(1-a)); 
   
   return R * c * 1000; // Multiply result to get distance in meters
+}
+
+// Helper function to process available GPS data
+void processGPSData() {
+  // Process up to 5 NMEA sentences (if available) to ensure we get the latest data
+  int sentenceCount = 0;
+  while (Serial1.available() && sentenceCount < 5) {
+    String data = Serial1.readStringUntil('\n');
+    data.trim();
+    
+    if (data.startsWith("$GPRMC") && parseGPSData(data)) {
+      // Calculate distance if we have previous valid coordinates
+      if (prevLat != 0.0 && prevLon != 0.0) {
+        distance = haversine(prevLat, prevLon, lat, lon);
+        
+        // Apply thresholds
+        if (distance < MAX_DISTANCE_THRESHOLD && 
+            speed < MAX_SPEED_THRESHOLD &&
+            speed > MIN_SPEED_THRESHOLD) {
+          totalDistance += distance;
+        } else if (speed < MIN_SPEED_THRESHOLD) {
+          speed = 0;
+        }
+      }
+      sentenceCount++;
+    }
+  }
 }

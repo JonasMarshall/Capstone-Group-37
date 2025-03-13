@@ -8,3 +8,4 @@ void createNewSdFile();
 #define SD_CS_1     digitalWrite(SD_CS, HIGH)
 
 void SD_System_Init();
+bool isSDCardBusy();

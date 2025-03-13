@@ -6,241 +6,225 @@
 #include <SD.h>
 #include "DEV_Config.h"
 
-
 //stroke detector variables
 float x, y, z;
 float totalAcceleration;
 float avgA;
 int counter = 0; // counter for the Strokeloop
+
 static uint32_t current_Millis = 0; // get the current time in milliseconds
 
 float minVal_1;   // minimum values for stroke detection
 float minVal_2;
-int Mindex =0;    // index of those values
-int Maxdex =0;
+int Mindex = 0;    // index of those values
+int Maxdex = 0;
 int temp = 0;   // temporary value for swapping mindex and maxdex
 int dist = 0;   // index difference between Mindex and Maxdex
 
 int front = 0;  // starting point for each stroke
 
-float StrokeData[72][2];  // external acceleration stroke curve to be plotted in main
+float StrokeData[DIM_FILTER][2];  // external acceleration stroke curve to be plotted in main
 
-float filteredpoints[72]; // filtered data
+float filteredpoints[DIM_FILTER]; // filtered data
 
-float distance_data_points[76]; // stores total distance travelled
-float mps_data_points[76];    // stores velocity
-String split_data_points[76]; // stores split speed
-float new_data[72]; //stores the stroke data
+float distance_data_points[DIM_STORAGE]; // stores total distance travelled
+float mps_data_points[DIM_STORAGE];    // stores velocity
+String split_data_points[DIM_STORAGE]; // stores split speed
+float new_data[DIM_FILTER]; //stores the stroke data
 
-float accArray[76]; // stores acceleration data
-float timeArray[76]; // stores time data
+float accArray[DIM_STORAGE]; // stores acceleration data
+float timeArray[DIM_STORAGE]; // stores time data
 
 
 int samplerate = 0; // takes measurments every 10 loops
 
-int integer_speed;  // split speed variables
 int split_minutes;
 float split_seconds;
 
 int numCounter = 0; // counter for numloop
-
 
 float time_start; // for calculation strokes per minute
 float time_end;
 float strokeTime;
 float spm;
 
-//call in loop for stroke detector functionality
+void findStrokeMinima(float data[], int &minIndex, int &maxIndex) {
+  const int dataSize = DIM_FILTER;
+
+  // Find first minimum
+  minIndex = 0;
+  float minVal1 = data[0];
+  for (int j = 1; j < dataSize; j++) {
+    if (data[j] < minVal1) {
+      minVal1 = data[j];
+      minIndex = j;
+    }
+  }
+
+  // Find second minimum (at least 5 indices away from the first)
+  maxIndex = 0;
+  float minVal2 = data[0]; // Arbitrary high value
+  for (int j = 0; j < dataSize; j++) {
+    if (data[j] < minVal2 && data[j] != minVal1 && (j > minIndex + 5 || j < minIndex - 5)) {
+      minVal2 = data[j];
+      maxIndex = j;
+    }
+  }
+
+  // Ensure minIndex is the earlier index
+  if (minIndex > maxIndex) {
+    int temp = minIndex;
+    minIndex = maxIndex;
+    maxIndex = temp;
+  }
+}
+
 void strokeLoop() {
   while(true){
+    // GPS calculations - Process any available GPS data
+    processGPSData();
     if (IMU.accelerationAvailable()) {
       IMU.readAcceleration(x, y, z);
       if (samplerate == 10){
         totalAcceleration = (x+y+z);
         current_Millis = millis();
 
-        // GPS calculations
-        if (Serial1.available()) {
-          String data = Serial1.readStringUntil('\n');
-          data.trim();
-
-          if (data.startsWith("$GPRMC") && parseGPSData(data)) {
-            // Calculate distance if we have previous valid coordinates
-            if (prevLat != 0.0 && prevLon != 0.0) {
-              double distance = haversine(prevLat, prevLon, lat, lon);
-              
-              // Apply thresholds
-              if (distance < MAX_DISTANCE_THRESHOLD && 
-                  speed < MAX_SPEED_THRESHOLD &&
-                  speed > MIN_SPEED_THRESHOLD) {
-                totalDistance += distance;
-              }
-            }
-          }
+        // Calculate split time
+        if (speed > 0) {
+          split_minutes = (int)(500.0 / speed) / 60;
+          split_seconds = (500.0 / speed) - (split_minutes * 60);
+          String split_time = String(split_minutes) + ":" + String(split_seconds, 2);
+          split_data_points[counter] = split_time;
+        } else {
+          split_minutes = 0;
+          split_seconds = 0;
+          split_data_points[counter] = "0:0.00";
         }
 
-        integer_speed = round(speed);
-        split_minutes = (500/integer_speed) % 60;
-        split_seconds = (500/integer_speed) - split_minutes * 60;
-        samplerate = 0;
+        // Store current data points
         timeArray[counter] = current_Millis;
         accArray[counter] = totalAcceleration;
-        distance_data_points[counter] = distance;
+        distance_data_points[counter] = totalDistance;
         mps_data_points[counter] = speed;
-        String split_time = String(split_minutes) + ":" + String(split_seconds, 2);
-        split_data_points[counter] = split_time;
+        
 
-        counter = counter+1;
-        if (counter == 75){
-          //Store Acceleration data to CSV file and SD card
-
-            for (int i = 0;i<72;i++){
-              filteredpoints[i] =(accArray[i] + accArray[i+1]+ accArray[i+2]+ accArray[i+3] + accArray[i+4])/5;
-            }
-            // Serial.println("Filtered Data Points");
-            // for(int i = 0; i < 72; i++){
-            //   Serial.println(filteredpoints[i]);
-            // }
-            minVal_1 = filteredpoints[0];
-            for (int j = 0;j<72;j++){
-              if (filteredpoints[j] < minVal_1){
-                minVal_1 = filteredpoints[j];
-                Mindex = j;
-              }
-            }
-            minVal_2 = filteredpoints[0];
-            for (int j = 0;j<72;j++){
-              if (filteredpoints[j] < minVal_2 && filteredpoints[j]!= minVal_1 && (j > Mindex+ 5 || j < Mindex-5) ){
-                minVal_2 = filteredpoints[j];
-                Maxdex = j;
-              }
-            }
-            if (Mindex > Maxdex){
-              temp = Mindex;
-              Mindex = Maxdex;
-              Maxdex = temp;
-            }
-            time_start = timeArray[Mindex];
-            time_end = timeArray[Maxdex];
-            strokeTime = time_end - time_start;
-            spm = 60/strokeTime;
-
-            dist = Maxdex - Mindex;
-            //dataLogger(spm, accArray, mps_data_points, timeArray, distance_data_points, 76);
-            front = dist *0.3;
-            for (int k =0;k<dist;k++){
-              if(Mindex-front < 0){
-                new_data[k] = filteredpoints[k];
-              }
-              else{
-                new_data[k] = filteredpoints[Mindex-front+k];
-              }
-            }
-            for(int i = 0; i < dist; i++){
-              Serial.print(i);
-              Serial.print(",");
-              Serial.println(new_data[i]);
-            }
-            for(int i = 0; i < dist; i++){
-              StrokeData[i][0] = i;
-              StrokeData[i][1] = new_data[i];
-            }
-
-            Serial.println("Stroke Data Points");
-            for(int i = 0; i < dist; i++){
-              Serial.print(StrokeData[i][0]);
-              Serial.print(",");
-              Serial.println(StrokeData[i][1]);
-
-            }
-            counter = 0;
-            break;
+        counter++;
+        samplerate = 0;
+        
+        if (counter == DIM_COUNTER){
+          // Process acceleration data
+          for (int i = 0; i < DIM_FILTER; i++){
+            filteredpoints[i] = (accArray[i] + accArray[i+1] + accArray[i+2] + accArray[i+3] + accArray[i+4]) / 5;
           }
+          
+          // Find stroke minima
+          int Mindex, Maxdex;
+          findStrokeMinima(filteredpoints, Mindex, Maxdex);
+          
+          // Calculate stroke metrics
+          time_start = timeArray[Mindex];
+          time_end = timeArray[Maxdex];
+          strokeTime = (time_end - time_start) / 1000.0; // Convert to seconds
+          spm = 60.0 / strokeTime;
+
+          dist = Maxdex - Mindex;
+          
+          // Log data
+          dataLogger(spm, accArray, mps_data_points, timeArray, distance_data_points, DIM_STORAGE);
+          while (isSDCardBusy()) {delay(1);}
+
+          // Prepare stroke data for plotting
+          front = dist * 0.3;
+          for (int k = 0; k < dist; k++){
+            if(Mindex - front < 0){
+              new_data[k] = filteredpoints[k];
+            } else {
+              new_data[k] = filteredpoints[Mindex - front + k];
+            }
+          }
+          
+          for(int i = 0; i < dist; i++){
+            Serial.print(i);
+            Serial.print(",");
+            Serial.println(new_data[i]);
+          }
+
+          // Store stroke data for display
+          for(int i = 0; i < dist; i++){
+            StrokeData[i][0] = i;
+            StrokeData[i][1] = new_data[i];
+          }
+
+          Serial.println("Stroke Data Points");
+          for(int i = 0; i < dist; i++){
+            Serial.print(StrokeData[i][0]);
+            Serial.print(",");
+            Serial.println(StrokeData[i][1]);
+          }
+
+          counter = 0;
+          break;
+        }
       }
-      samplerate = samplerate + 1;
+      samplerate++;
     }
   }
 }
 
 void numLoop() {
   while(true){
-    // BP = Serial.parseInt();  
-    if (IMU.accelerationAvailable()) {
-      IMU.readAcceleration(x, y, z);
-      if (samplerate == 10){
-        avgA = (x+y+z);
-        current_Millis = millis();
-            // GPS calculations
-        if (Serial1.available()) {
-          String data = Serial1.readStringUntil('\n');
-          data.trim();
-
-          if (data.startsWith("$GPRMC") && parseGPSData(data)) {
-            // Calculate distance if we have previous valid coordinates
-            if (prevLat != 0.0 && prevLon != 0.0) {
-              double distance = haversine(prevLat, prevLon, lat, lon);
-              
-              // Apply thresholds
-              if (distance < MAX_DISTANCE_THRESHOLD && 
-                  speed < MAX_SPEED_THRESHOLD &&
-                  speed > MIN_SPEED_THRESHOLD) {
-                totalDistance += distance;
-              }
-            }
-          }
-        }
-
-        integer_speed = round(speed);
-        // Error Check 1: Prevent division by zero in split calculation
-        if(integer_speed == 0) {
-          Serial.println("Error: Zero speed detected. Skipping split calculation");
-          integer_speed = 1; // Set to minimum safe value
-        }
-        split_minutes = (500/integer_speed) % 60;
-        split_seconds = (500/integer_speed) - split_minutes * 60;
-
-        timeArray[numCounter] = current_Millis;
-        accArray[numCounter] = totalAcceleration;
-        distance_data_points[numCounter] = distance;
-        mps_data_points[numCounter] = speed;
-        String split_time = String(split_minutes) + ":" + String(split_seconds, 2);
-        split_data_points[numCounter] = split_time;
-        numCounter = numCounter + 1;
-        samplerate = 0;
-
-        if (numCounter == 75){
-          numCounter = 0;
-            for (int i = 0;i<72;i++){
-            filteredpoints[i] =(accArray[i] + accArray[i+1]+ accArray[i+2]+ accArray[i+3] + accArray[i+4])/5;
-          }
-          minVal_1 = filteredpoints[0];
-          for (int j = 0;j<72;j++){
-            if (filteredpoints[j] < minVal_1){
-              minVal_1 = filteredpoints[j];
-              Mindex = j;
-            }
-          }
-          minVal_2 = filteredpoints[0];
-          for (int j = 0;j<72;j++){
-            if (filteredpoints[j] < minVal_2 && filteredpoints[j]!= minVal_1 && (j > Mindex+ 5 || j < Mindex-5) ){
-              minVal_2 = filteredpoints[j];
-              Maxdex = j;
-            }
-          }
-          if (Mindex > Maxdex){
-            temp = Mindex;
-            Mindex = Maxdex;
-            Maxdex = temp;
-          }
-          time_start = timeArray[Mindex];
-          time_end = timeArray[Maxdex];
-          strokeTime = time_end - time_start;
-          spm = 60/strokeTime;
-          //dataLogger(spm, accArray, mps_data_points, timeArray, distance_data_points, 76);
-        }
-        break;
+    // GPS calculations
+    processGPSData();
+    
+    if (samplerate == 10) {
+      // Calculate average acceleration if needed
+      if (IMU.accelerationAvailable()) {
+        IMU.readAcceleration(x, y, z);
+        totalAcceleration = (x+y+z);
+        avgA = totalAcceleration; // You might want to implement proper averaging here
       }
-      samplerate = samplerate + 1;
-    } 
+
+      // Update split time calculations
+      if (speed > 0) {
+        split_minutes = (int)(500.0 / speed) / 60;
+        split_seconds = (500.0 / speed) - (split_minutes * 60);
+      } else {
+        split_minutes = 0;
+        split_seconds = 0;
+      }
+
+      Serial.println(speed);
+      // Store data points for this iteration
+      current_Millis = millis();
+      timeArray[numCounter] = current_Millis;
+      accArray[numCounter] = totalAcceleration;
+      distance_data_points[numCounter] = totalDistance;
+      mps_data_points[numCounter] = speed;
+      
+      String split_time = String(split_minutes) + ":" + String(split_seconds, 2);
+      split_data_points[numCounter] = split_time;
+      
+      numCounter++;
+      samplerate = 0;
+      Serial.println(numCounter);
+
+
+      if (numCounter >= DIM_COUNTER) {
+        findStrokeMinima(filteredpoints, Mindex, Maxdex);
+        numCounter = 0;
+
+        time_start = timeArray[Mindex];
+        time_end = timeArray[Maxdex];
+        strokeTime = time_end - time_start;
+        spm = 60/strokeTime;
+        Serial.println("Storing data to SD Card!");
+        dataLogger(spm, accArray, mps_data_points, timeArray, distance_data_points, DIM_STORAGE);
+        delay(500);
+      }
+      break;
+    }
+    samplerate++;
+    
+    delay(100); // Short delay to prevent over-sampling
   }
 }

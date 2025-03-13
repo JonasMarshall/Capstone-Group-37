@@ -15,6 +15,7 @@ void SD_System_Init()
 
 void createNewSdFile() {
   SPI.endTransaction();
+  delay(100);
   OLED_CS_1; // turn screen off
   SD_CS_0; // turn SD on
 
@@ -73,6 +74,7 @@ void dataLogger(float strokeRate, float acceleration[], float velocity[], float 
   */
   SPI.endTransaction();
   OLED_CS_1; // turn screen off
+  delay(100);
   SD_CS_0; // turn SD on
   SPI.beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE0));
   // Create or open a CSV file
@@ -97,6 +99,15 @@ void dataLogger(float strokeRate, float acceleration[], float velocity[], float 
   }
   SPI.endTransaction();
   SD_CS_1; // turn SD off
+  delay(100);
   OLED_CS_0; // turn screen on
   SPI.beginTransaction(SPISettings(8000000, MSBFIRST, SPI_MODE3));
+}
+
+bool isSDCardBusy() {
+    digitalWrite(SD_CS, LOW); // Select SD card
+    SPI.transfer(0xFF);       // Send a dummy byte
+    uint8_t response = SPI.transfer(0xFF); // Read response
+    digitalWrite(SD_CS, HIGH); // Deselect SD card
+    return (response != 0xFF); // If response is not 0xFF, the card is busy
 }

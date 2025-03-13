@@ -166,7 +166,6 @@ function:
 void OLED_1in5_rgb_Clear(void)
 {
     UWORD i;
-
     OLED_WriteReg(0x15);
     OLED_WriteData(0);
     OLED_WriteData(127);

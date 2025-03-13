@@ -25,14 +25,14 @@ unsigned long hours;
 
 bool started = false; // checks to see if run started
 
-// const int B1Pin = 2;   // for when we switch to buttons
-// int B1State = 0;
-// const int B2Pin = 2;
-// int B2State = 0;
-// const int B3Pin = 2;
-// int B3State = 0;
-// const int B4Pin = 2;
-// int B4State = 0;
+const int B1Pin = 2;   // for when we switch to buttons
+int B1State = 0;
+const int B2Pin = 3;
+int B2State = 0;
+const int B3Pin = 4;
+int B3State = 0;
+const int B4Pin = 5;
+int B4State = 0;
 // const int B5Pin = 2;
 // int B5State = 0;
 
@@ -49,9 +49,14 @@ void setup() {
 
   // GPS Initialization
   Serial1.begin(9600);
+
+  delay(1000);
+  Serial1.println("$PUBX,40,GPRMC,0,1,0,0,0,0*46"); // Enable GPRMC, disable others
+  delay(500);
+
   // Initialize speed history
   for (int i = 0; i < SPEED_SAMPLES; i++) {
-    speedHistory[i] = 0.0;
+    speedHistory[i] = 0;
   }
 
   Serial.print(F("OLED_Init()...\r\n"));  // Graphing stuff
@@ -63,10 +68,10 @@ void setup() {
   Paint_SetScale(65);
 
   home_screen();  // start with home screen
-  // pinMode(B1Pin, INPUT); // buttons
-  // pinMode(B2Pin, INPUT);
-  // pinMode(B3Pin, INPUT);
-  // pinMode(B4Pin, INPUT);
+  pinMode(B1Pin, INPUT); // buttons
+  pinMode(B2Pin, INPUT);
+  pinMode(B3Pin, INPUT);
+  pinMode(B4Pin, INPUT);
   // pinMode(B5Pin, INPUT);
 
   if (!IMU.begin()) {     // check accelerometer
@@ -223,8 +228,30 @@ void plotter(){ // plots data
 void loop() {
   // Getting button input
   Serial.println("Enter button choice");  // gets input
-  button = Serial.parseInt();
-  // B1State = digitalRead(B1Pin);
+  //button = Serial.parseInt();
+  B1State = digitalRead(B1Pin);
+  B2State = digitalRead(B2Pin);
+  B3State = digitalRead(B3Pin);
+  B4State = digitalRead(B4Pin);
+  
+  button = 0;
+
+  if (B1State == 1) button = 1;
+  else if (B2State == 1) button = 2;
+  else if (B3State == 1) button = 3;
+  else if (B4State == 1) button = 4;
+
+  // Print button states
+  Serial.print("B1State: ");
+  Serial.print(B1State);
+  Serial.print(", B2State: ");
+  Serial.print(B2State);
+  Serial.print(", B3State: ");
+  Serial.print(B3State);
+  Serial.print(", B4State: ");
+  Serial.println(B4State);
+  delay(500);
+  
 
   if ((button == 1) ||(button == 2) ||(button == 3) ||(button == 4)){ // check to see if there is button input
     if((screen == 4) ||(screen == 5)){  // if on a data recording screen
@@ -274,7 +301,7 @@ void loop() {
             screen = 4;
             start_Millis = millis();
             started = true;
-            //  createNewSdFile(); // create a new SD file to save data
+            createNewSdFile(); // create a new SD file to save data
             // numerical_data();
           }
 
@@ -335,13 +362,18 @@ void loop() {
       Serial.println("Loading stroke loop...");
       strokeLoop();
       Serial.println("Stroke loop completed...");
+      // Ensure proper SPI settings for OLED before attempting to clear
       Serial.println("Loading OLED...");
+      delay(100);
+      //OLED_1in5_rgb_Display(BlackImage);
+      OLED_1in5_rgb_Clear();
       OLED_1in5_rgb_Clear();
       Serial.println("Completed OLED...");
       Serial.println("Loading Graphical data...");
       graphical_data();
-      Serial.println("Graphical data completed...");  
+      Serial.println("Graphical data completed..."); 
       plotter();
+      Serial.println("Graphical data completed...");
       break;
   }
 }
