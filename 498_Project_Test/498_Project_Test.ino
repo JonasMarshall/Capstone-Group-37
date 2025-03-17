@@ -252,7 +252,7 @@ void loop() {
   Serial.println(B4State);
   delay(500);
   
-
+  //on button navigation
   if ((button == 1) ||(button == 2) ||(button == 3) ||(button == 4)){ // check to see if there is button input
     if((screen == 4) ||(screen == 5)){  // if on a data recording screen
       if (button == 4){ // if stop button pressed stop screen
@@ -329,6 +329,8 @@ void loop() {
       }
     }
   }
+
+  // happens every loop
   switch (screen){
     case 0:
       Serial.println("Loading home screen...");

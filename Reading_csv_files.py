@@ -87,6 +87,11 @@ def printPlot():
 
     data = pd.read_csv(global_file_path)
     file_name = os.path.basename(global_file_path)  # Extract the file name
+    data.sort_values(by='Time', ascending=True)
+    data = data[data['Time'] != 0]
+    data['Time'] = data['Time'] - data['Time'].min()
+
+
 
     # Plot the data
     #plt.figure(figsize=(15, 5))
@@ -114,6 +119,9 @@ def openFile():
 def showStats():
     global stats_labels
     data = pd.read_csv(global_file_path)
+    data.sort_values(by='Time', ascending=True)
+    data = data[data['Time'] != 0]
+    data['Time'] = data['Time'] - data['Time'].min()
 
     #get total time
     total_time = data["Time"].iloc[-1]
