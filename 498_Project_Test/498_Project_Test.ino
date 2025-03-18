@@ -25,14 +25,17 @@ unsigned long hours;
 
 bool started = false; // checks to see if run started
 
-const int B1Pin = 2;   // for when we switch to buttons
-int B1State = 0;
-const int B2Pin = 3;
-int B2State = 0;
-const int B3Pin = 4;
-int B3State = 0;
-const int B4Pin = 5;
-int B4State = 0;
+volatile unsigned long lastInterruptTime = 0;
+const unsigned long debounceDelay = 250;  // 50ms debounce delay
+
+#define B1Pin 2   // for when we switch to buttons
+bool B1pressed = false;
+#define B2Pin 3
+bool B2pressed = false;
+#define B3Pin 4
+bool B3pressed = false;
+#define B4Pin 5
+bool B4pressed = false;
 // const int B5Pin = 2;
 // int B5State = 0;
 
@@ -72,6 +75,12 @@ void setup() {
   pinMode(B2Pin, INPUT);
   pinMode(B3Pin, INPUT);
   pinMode(B4Pin, INPUT);
+
+  attachInterrupt(digitalPinToInterrupt(B1Pin), button1Handler, RISING);
+  attachInterrupt(digitalPinToInterrupt(B2Pin), button2Handler, RISING);
+  attachInterrupt(digitalPinToInterrupt(B3Pin), button3Handler, RISING);
+  attachInterrupt(digitalPinToInterrupt(B4Pin), button4Handler, RISING);
+
   // pinMode(B5Pin, INPUT);
 
   if (!IMU.begin()) {     // check accelerometer
@@ -229,19 +238,38 @@ void loop() {
   // Getting button input
   Serial.println("Enter button choice");  // gets input
   //button = Serial.parseInt();
+  /*
   B1State = digitalRead(B1Pin);
   B2State = digitalRead(B2Pin);
   B3State = digitalRead(B3Pin);
   B4State = digitalRead(B4Pin);
+  */
   
   button = 0;
 
-  if (B1State == 1) button = 1;
-  else if (B2State == 1) button = 2;
-  else if (B3State == 1) button = 3;
-  else if (B4State == 1) button = 4;
+  if (B1pressed)  {
+    button = 1;
+    B1pressed = false;
+  }
+
+  if (B2pressed) {
+    button = 2;
+    B2pressed = false;
+  }
+
+  if (B3pressed)  {
+    button = 3;
+    B3pressed = false;
+  }
+
+  if (B4pressed) {
+    button = 4;
+    B4pressed = false;
+  }
+
 
   // Print button states
+  /*
   Serial.print("B1State: ");
   Serial.print(B1State);
   Serial.print(", B2State: ");
@@ -251,6 +279,7 @@ void loop() {
   Serial.print(", B4State: ");
   Serial.println(B4State);
   delay(500);
+  */
   
   //on button navigation
   if ((button == 1) ||(button == 2) ||(button == 3) ||(button == 4)){ // check to see if there is button input
@@ -379,3 +408,37 @@ void loop() {
       break;
   }
 }
+
+//interrupt handlers
+void button1Handler() {
+  if (millis() - lastInterruptTime > debounceDelay) {
+    B1pressed = true;
+    lastInterruptTime = millis();
+  }
+}
+
+void button2Handler() {
+  if (millis() - lastInterruptTime > debounceDelay) {
+    B2pressed = true;
+    lastInterruptTime = millis();
+
+  }
+}
+
+void button3Handler() {
+  if (millis() - lastInterruptTime > debounceDelay) {
+    B3pressed = true;
+    lastInterruptTime = millis();
+
+  }
+}
+
+void button4Handler() {
+  if (millis() - lastInterruptTime > debounceDelay) {
+    B4pressed = true;
+    lastInterruptTime = millis();
+
+  }
+}
+
+
