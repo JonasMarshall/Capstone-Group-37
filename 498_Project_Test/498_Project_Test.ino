@@ -226,16 +226,15 @@ void plotter(){ // plots data
 
 
 void loop() {
+  button = 0;
   // Getting button input
   Serial.println("Enter button choice");  // gets input
-  //button = Serial.parseInt();
+  button = Serial.parseInt();
   B1State = digitalRead(B1Pin);
   B2State = digitalRead(B2Pin);
   B3State = digitalRead(B3Pin);
   B4State = digitalRead(B4Pin);
   
-  button = 0;
-
   if (B1State == 1) button = 1;
   else if (B2State == 1) button = 2;
   else if (B3State == 1) button = 3;

@@ -112,12 +112,14 @@ double haversine(double lat1, double lon1, double lat2, double lon2) {
 void processGPSData() {
   // Process up to 5 NMEA sentences (if available) to ensure we get the latest data
   int sentenceCount = 0;
+  Serial.println("Trying to process GPS data");
   while (Serial1.available() && sentenceCount < 5) {
     String data = Serial1.readStringUntil('\n');
     data.trim();
     
     if (data.startsWith("$GPRMC") && parseGPSData(data)) {
       // Calculate distance if we have previous valid coordinates
+      Serial.println("Valid GPS coordinates!");
       if (prevLat != 0.0 && prevLon != 0.0) {
         distance = haversine(prevLat, prevLon, lat, lon);
         

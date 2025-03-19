@@ -1,4 +1,4 @@
-#define DIM_STORAGE 30
+#define DIM_STORAGE 76
 #define DIM_COUNTER DIM_STORAGE - 1
 #define DIM_FILTER DIM_STORAGE - 4
 void strokeLoop();
