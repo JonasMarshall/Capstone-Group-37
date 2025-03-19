@@ -143,11 +143,11 @@ void strokeLoop() {
             }
           }
           
-          for(int i = 0; i < dist; i++){
-            Serial.print(i);
-            Serial.print(",");
-            Serial.println(new_data[i]);
-          }
+          // for(int i = 0; i < dist; i++){
+          //   Serial.print(i);
+          //   Serial.print(",");
+          //   Serial.println(new_data[i]);
+          // }
 
           // Store stroke data for display
           for(int i = 0; i < dist; i++){
@@ -155,12 +155,12 @@ void strokeLoop() {
             StrokeData[i][1] = new_data[i];
           }
 
-          Serial.println("Stroke Data Points");
-          for(int i = 0; i < dist; i++){
-            Serial.print(StrokeData[i][0]);
-            Serial.print(",");
-            Serial.println(StrokeData[i][1]);
-          }
+          // Serial.println("Stroke Data Points");
+          // for(int i = 0; i < dist; i++){
+          //   Serial.print(StrokeData[i][0]);
+          //   Serial.print(",");
+          //   Serial.println(StrokeData[i][1]);
+          // }
 
           counter = 0;
           break;
@@ -193,7 +193,7 @@ void numLoop() {
         split_seconds = 0;
       }
 
-      Serial.println(speed);
+      // Serial.println(speed);
       // Store data points for this iteration
       current_Millis = millis();
       timeArray[numCounter] = current_Millis;
@@ -206,7 +206,7 @@ void numLoop() {
       
       numCounter++;
       samplerate = 0;
-      Serial.println(numCounter);
+      // Serial.println(numCounter);
 
 
       if (numCounter >= DIM_COUNTER) {
@@ -219,12 +219,12 @@ void numLoop() {
         spm = 60/strokeTime;
         Serial.println("Storing data to SD Card!");
         dataLogger(spm, accArray, mps_data_points, timeArray, distance_data_points, DIM_STORAGE);
-        delay(500);
+        // delay(500);
       }
       break;
     }
     samplerate++;
     
-    delay(100); // Short delay to prevent over-sampling
+    // delay(100); // Short delay to prevent over-sampling
   }
 }

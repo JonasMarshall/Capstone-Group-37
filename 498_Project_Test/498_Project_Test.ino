@@ -118,16 +118,19 @@ void numerical_data(){
   String avgA_text = String(avgA);
   String distance_text = String(totalDistance);
   String str_text = String(spm);
-  Paint_DrawString_EN(0, 0, "Avg Acc:", &Font12, BLACK, BLUE);
-  Paint_DrawString_EN(0, 20, "Avg Vel:", &Font12, BLACK, BLUE);
-  Paint_DrawString_EN(0, 40, "Str/min:", &Font12, BLACK, BLUE);
-  Paint_DrawString_EN(0, 60, "Dist:", &Font12, BLACK, BLUE);
-  Paint_DrawString_EN(0, 80, "Time:", &Font12, BLACK, BLUE);
+  // String 500_text = String()split_time
+  Paint_DrawString_EN(0, 0, "Avg Acc [m/s^2]:", &Font12, BLACK, BLUE);
+  Paint_DrawString_EN(0, 20, "Avg Vel [m/s]:", &Font12, BLACK, BLUE);
+    Paint_DrawString_EN(0, 40, "500m [min]:", &Font12, BLACK, BLUE);
+  Paint_DrawString_EN(0, 60, "Str/min:", &Font12, BLACK, BLUE);
+  Paint_DrawString_EN(0, 80, "Dist [m]:", &Font12, BLACK, BLUE);
+  Paint_DrawString_EN(0, 100, "Time:", &Font12, BLACK, BLUE);
   Paint_DrawString_EN(90, 0, avgA_text.c_str(), &Font12, BLACK, BLUE);
   Paint_DrawString_EN(90, 20, velocity_text.c_str(), &Font12, BLACK, BLUE);
-  Paint_DrawString_EN(90, 40, str_text.c_str(), &Font12,  BLACK, BLUE);
-  Paint_DrawString_EN(90, 60, distance_text.c_str(), &Font12, BLACK, BLUE);
-  Paint_DrawTime(50, 80,&currentTime,&Font12,BLACK, BLUE);
+    Paint_DrawString_EN(90, 40, split_time, &Font12, BLACK, BLUE);
+  Paint_DrawString_EN(90, 60, str_text.c_str(), &Font12,  BLACK, BLUE);
+  Paint_DrawString_EN(90, 80, distance_text.c_str(), &Font12, BLACK, BLUE);
+  Paint_DrawTime(70, 100,&currentTime,&Font12,BLACK, BLUE);
 }
 
 void graphical_data(){
@@ -227,14 +230,14 @@ void plotter(){ // plots data
 
 void loop() {
   // Getting button input
-  Serial.println("Enter button choice");  // gets input
-  //button = Serial.parseInt();
+  // Serial.println("Enter button choice");  // gets input
+  button = Serial.parseInt();
   B1State = digitalRead(B1Pin);
   B2State = digitalRead(B2Pin);
   B3State = digitalRead(B3Pin);
   B4State = digitalRead(B4Pin);
   
-  button = 0;
+  // button = 0;
 
   if (B1State == 1) button = 1;
   else if (B2State == 1) button = 2;
@@ -242,15 +245,15 @@ void loop() {
   else if (B4State == 1) button = 4;
 
   // Print button states
-  Serial.print("B1State: ");
-  Serial.print(B1State);
-  Serial.print(", B2State: ");
-  Serial.print(B2State);
-  Serial.print(", B3State: ");
-  Serial.print(B3State);
-  Serial.print(", B4State: ");
-  Serial.println(B4State);
-  delay(500);
+  // Serial.print("B1State: ");
+  // Serial.print(B1State);
+  // Serial.print(", B2State: ");
+  // Serial.print(B2State);
+  // Serial.print(", B3State: ");
+  // Serial.print(B3State);
+  // Serial.print(", B4State: ");
+  // Serial.println(B4State);
+  // delay(500);
   
   //on button navigation
   if ((button == 1) ||(button == 2) ||(button == 3) ||(button == 4)){ // check to see if there is button input
@@ -333,49 +336,51 @@ void loop() {
   // happens every loop
   switch (screen){
     case 0:
-      Serial.println("Loading home screen...");
+      // Serial.println("Loading home screen...");
       home_screen();
-      Serial.println("Home screen completed");
+      // Serial.println("Home screen completed");
       break;
     case 1:
-      Serial.println("Loading home screen 1...");
+      // Serial.println("Loading home screen 1...");
       home_screen_1();
-      Serial.println("Home screen 1 completed");
+      // Serial.println("Home screen 1 completed");
       break;
     case 2:
-      Serial.println("Loading home screen 2...");
+      // Serial.println("Loading home screen 2...");
       home_screen_2();
-      Serial.println("Home screen 2 completed");
+      // Serial.println("Home screen 2 completed");
       break;
     case 3:
-      Serial.println("Loading stop screen...");
+      // Serial.println("Loading stop screen...");
       stop_screen();
-      Serial.println("Stop screen completed");
+      // Serial.println("Stop screen completed");
       break;
     case 4:
-      Serial.println("Loading num loop...");
-      numLoop();
-      Serial.println("Num loop completed...");
-      Serial.println("Loading numerical data...");
       numerical_data();
-      Serial.print("Numerical data completed...");
+      // Serial.println("Loading num loop...");
+      numLoop();
+      // Serial.println("Num loop completed...");
+      // Serial.println("Loading numerical data...");
+      numerical_data();
+      // Serial.print("Numerical data completed...");
       break;
     case 5:
-      Serial.println("Loading stroke loop...");
+      graphical_data();
+      // Serial.println("Loading stroke loop...");
       strokeLoop();
-      Serial.println("Stroke loop completed...");
+      // Serial.println("Stroke loop completed...");
       // Ensure proper SPI settings for OLED before attempting to clear
-      Serial.println("Loading OLED...");
-      delay(100);
+      // Serial.println("Loading OLED...");
+      // delay(100);
       //OLED_1in5_rgb_Display(BlackImage);
       OLED_1in5_rgb_Clear();
       OLED_1in5_rgb_Clear();
-      Serial.println("Completed OLED...");
-      Serial.println("Loading Graphical data...");
+      // Serial.println("Completed OLED...");
+      // Serial.println("Loading Graphical data...");
       graphical_data();
-      Serial.println("Graphical data completed..."); 
+      // Serial.println("Graphical data completed..."); 
       plotter();
-      Serial.println("Graphical data completed...");
+      // Serial.println("Graphical data completed...");
       break;
   }
 }
