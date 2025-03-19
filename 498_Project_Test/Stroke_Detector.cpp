@@ -40,7 +40,7 @@ int samplerate = 0; // takes measurments every 10 loops
 
 int split_minutes;
 float split_seconds;
-String split_time;
+String split_time = "0:00";
 
 int numCounter = 0; // counter for numloop
 
