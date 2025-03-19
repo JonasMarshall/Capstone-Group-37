@@ -109,7 +109,7 @@ void timer(){ // timer for display
   hours = minutes/60;
   currentTime.Sec = seconds %60;
   currentTime.Min = minutes %60;
-  currentTime.Hour = hours %24;
+  // currentTime.Hour = hours %24;
 }
 
 void numerical_data(){
