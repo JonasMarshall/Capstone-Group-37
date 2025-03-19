@@ -119,11 +119,11 @@ void numerical_data(){
   String distance_text = String(totalDistance);
   String str_text = String(spm);
   // String 500_text = String()split_time
-  Paint_DrawString_EN(0, 0, "Avg Acc [m/s^2]:", &Font12, BLACK, BLUE);
-  Paint_DrawString_EN(0, 20, "Avg Vel [m/s]:", &Font12, BLACK, BLUE);
-  Paint_DrawString_EN(0, 40, "500m [min]:", &Font12, BLACK, BLUE);
+  Paint_DrawString_EN(0, 0, "Avg Acc:", &Font12, BLACK, BLUE);
+  Paint_DrawString_EN(0, 20, "Avg Vel:", &Font12, BLACK, BLUE);
+  Paint_DrawString_EN(0, 40, "500m:", &Font12, BLACK, BLUE);
   Paint_DrawString_EN(0, 60, "Str/min:", &Font12, BLACK, BLUE);
-  Paint_DrawString_EN(0, 80, "Dist [m]:", &Font12, BLACK, BLUE);
+  Paint_DrawString_EN(0, 80, "Dist:", &Font12, BLACK, BLUE);
   Paint_DrawString_EN(0, 100, "Time:", &Font12, BLACK, BLUE);
   Paint_DrawString_EN(90, 0, avgA_text.c_str(), &Font12, BLACK, BLUE);
   Paint_DrawString_EN(90, 20, velocity_text.c_str(), &Font12, BLACK, BLUE);
