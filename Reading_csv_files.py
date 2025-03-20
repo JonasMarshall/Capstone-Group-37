@@ -4,7 +4,9 @@ import matplotlib.pyplot as plt
 import os
 from tkinter import *
 from tkinter import filedialog
-from tkinter import ttk  
+from tkinter import ttk 
+import matplotlib.ticker as ticker
+
 
 # Define the directory path
 #directory_path = "/Volumes/RECORDINGS"  # Ensure no trailing backslash
@@ -36,6 +38,9 @@ combo_y = None
 
 
 #define functions
+def seconds_to_min_sec(x, _):
+    minutes, seconds = divmod(int(x), 60)
+    return f"{minutes}:{seconds:02}"
 
 def printFileData():
     try:
@@ -84,22 +89,43 @@ def printPlot():
     x_data = combo_x.get()
     y_data = combo_y.get()
 
+    def labelUnitAdder (label):
+        if label == 'Time':
+            return 'Time (min:sec)'
+        elif label == 'Distance':
+            return 'Distance (m)'
+        elif label == 'Velocity':
+            return 'Velocity (m/s)'
+        elif label == 'Acceleration':
+            return 'Acceleration (m/s^2)'
+        elif label == 'Stroke_Rate':
+            return 'Stroke rate (strokes/min)'
+        return label
+
 
     data = pd.read_csv(global_file_path)
     file_name = os.path.basename(global_file_path)  # Extract the file name
     data.sort_values(by='Time', ascending=True)
+    data['Time'] = data['Time']/1000
     data = data[data['Time'] != 0]
     data['Time'] = data['Time'] - data['Time'].min()
 
 
+    if x_data == 'Stroke_Rate' or y_data == "Stroke_Rate":
+        data = data[data['Stroke_Rate'] < 80]
 
     # Plot the data
     #plt.figure(figsize=(15, 5))
     plt.figure()
     plt.plot(data[x_data], data[y_data], marker='o', linestyle='-', color='b')
+    if x_data == 'Time':
+        plt.gca().xaxis.set_major_formatter(ticker.FuncFormatter(seconds_to_min_sec))
+    if y_data == 'Time':
+        plt.gca().yaxis.set_major_formatter(ticker.FuncFormatter(seconds_to_min_sec))
+
     plt.title(f'{x_data} vs {y_data} ({file_name})')
-    plt.xlabel(x_data)
-    plt.ylabel(y_data)
+    plt.xlabel(labelUnitAdder(x_data))
+    plt.ylabel(labelUnitAdder(y_data))
     plt.show()
 
 
@@ -122,9 +148,10 @@ def showStats():
     data.sort_values(by='Time', ascending=True)
     data = data[data['Time'] != 0]
     data['Time'] = data['Time'] - data['Time'].min()
+    data['Time'] = data['Time']/1000
 
     #get total time
-    total_time = data["Time"].iloc[-1]
+    total_time = seconds_to_min_sec(data["Time"].iloc[-1], None)
 
     #get total distance
     total_distance = data["Distance"].iloc[-1]
@@ -133,7 +160,8 @@ def showStats():
     average_velocity = data["Velocity"].mean()
 
     #get average stroke rate
-    average_stroke_rate = data["Stroke_Rate"].mean()
+    average_stroke_rate = data.loc[data["Stroke_Rate"] < 80, "Stroke_Rate"].mean()
+
 
     #clear previous stats
     for label in stats_labels:
