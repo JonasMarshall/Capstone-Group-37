@@ -177,7 +177,7 @@ void numLoop() {
     // GPS calculations
     processGPSData();
     
-    if (samplerate == 10) {
+    // if (samplerate == 10) {
       // Calculate average acceleration if needed
       if (IMU.accelerationAvailable()) {
         IMU.readAcceleration(x, y, z);
@@ -223,8 +223,8 @@ void numLoop() {
         // delay(500);
       }
       break;
-    }
-    samplerate++;
+    // }
+    // samplerate++;
     
     // delay(100); // Short delay to prevent over-sampling
   }
