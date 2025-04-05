@@ -67,7 +67,7 @@ void setup() {
   Paint_NewImage(BlackImage, OLED_1in5_RGB_WIDTH, OLED_1in5_RGB_HEIGHT, 270, BLACK);  
   Paint_SetScale(65);
 
-  home_screen();  // start with home screen
+  home_screen_1();  // start with home screen
   pinMode(B1Pin, INPUT); // buttons
   pinMode(B2Pin, INPUT);
   pinMode(B3Pin, INPUT);
