@@ -8,7 +8,7 @@
 #include "SDLogger.h"
 #include <Arduino_LSM9DS1.h>
 
-int screen = 0;   // tells you which screen you're on
+int screen = 1;   // tells you which screen you're on
 int button = 0;   // reads keyboard input from serial monitor, will need to get rid of once we implement buttons
 
 UBYTE *BlackImage; // Graphics stuff
@@ -67,6 +67,7 @@ void setup() {
   Paint_NewImage(BlackImage, OLED_1in5_RGB_WIDTH, OLED_1in5_RGB_HEIGHT, 270, BLACK);  
   Paint_SetScale(65);
 
+  home_screen();
   home_screen_1();  // start with home screen
   pinMode(B1Pin, INPUT); // buttons
   pinMode(B2Pin, INPUT);
@@ -114,7 +115,7 @@ void timer(){ // timer for display
 
 void numerical_data(){
   timer();
-  String velocity_text = String(speed);   // converts the data to strings and displays them
+  String velocity_text = String(speed, 2);   // converts the data to strings and displays them
   String avgA_text = String(avgA);
   String distance_text = String(totalDistance);
   String str_text = String(spm);
@@ -229,6 +230,22 @@ void plotter(){ // plots data
 
 
 void loop() {
+  processGPSData();
+  
+  // Display GPS debug info occasionally
+  //static unsigned long lastGpsDebugTime = 0;
+  /*if (millis() - lastGpsDebugTime > 2000) { // Every 2 seconds
+    Serial.print("GPS: Lat=");
+    Serial.print(lat, 6);
+    Serial.print(" Lon=");
+    Serial.print(lon, 6);
+    Serial.print(" Speed=");
+    Serial.print(speed);
+    Serial.print(" Distance=");
+    Serial.println(totalDistance);
+    lastGpsDebugTime = millis();
+  }*/
+
   button = 0;
   // Getting button input
   //Serial.println("Enter button choice");  // gets input
@@ -356,7 +373,7 @@ void loop() {
       // Serial.println("Stop screen completed");
       break;
     case 4:
-      numerical_data();
+      //numerical_data();
       // Serial.println("Loading num loop...");
       numLoop();
       // Serial.println("Num loop completed...");

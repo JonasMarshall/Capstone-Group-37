@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "GPS_Config.h"
 
+
 // GPS Data
 double lat = 0.0, lon = 0.0;
 double prevLat = 0.0, prevLon = 0.0;
@@ -110,29 +111,44 @@ double haversine(double lat1, double lon1, double lat2, double lon2) {
 
 // Helper function to process available GPS data
 void processGPSData() {
-  // Process up to 5 NMEA sentences (if available) to ensure we get the latest data
+  bool foundValidData = false;
   int sentenceCount = 0;
-  Serial.println("Trying to process GPS data");
-  while (Serial1.available() && sentenceCount < 5) {
+  
+  while (Serial1.available() && sentenceCount < 10) { // Process more sentences
     String data = Serial1.readStringUntil('\n');
     data.trim();
     
-    if (data.startsWith("$GPRMC") && parseGPSData(data)) {
-      // Calculate distance if we have previous valid coordinates
-      Serial.println("Valid GPS coordinates!");
-      if (prevLat != 0.0 && prevLon != 0.0) {
-        distance = haversine(prevLat, prevLon, lat, lon);
-        
-        // Apply thresholds
-        if (distance < MAX_DISTANCE_THRESHOLD && 
-            speed < MAX_SPEED_THRESHOLD &&
-            speed > MIN_SPEED_THRESHOLD) {
-          totalDistance += distance;
-        } else if (speed < MIN_SPEED_THRESHOLD) {
-          speed = 0;
+    if (data.length() > 0) {
+      sentenceCount++;
+      
+      if (data.startsWith("$GPRMC")) {
+        bool valid = parseGPSData(data);
+        if (valid) {
+          foundValidData = true;
+          // Calculate distance and update totalDistance
+          if (prevLat != 0.0 && prevLon != 0.0) {
+            distance = haversine(prevLat, prevLon, lat, lon);
+            
+            // Apply thresholds
+            if (distance < MAX_DISTANCE_THRESHOLD && 
+                speed < MAX_SPEED_THRESHOLD &&
+                speed > MIN_SPEED_THRESHOLD) {
+              totalDistance += distance;
+            } else if (speed < MIN_SPEED_THRESHOLD) {
+              speed = 0;
+            }
+          }
         }
       }
-      sentenceCount++;
     }
   }
+  
+  // Static variable to track last time we reported GPS status
+  /*static unsigned long lastGpsStatusTime = 0;
+  if (millis() - lastGpsStatusTime > 10000) { // Every 10 seconds
+    if (!foundValidData) {
+      Serial.println("No valid GPS data found in last check");
+    }
+    lastGpsStatusTime = millis();
+  }*/
 }
